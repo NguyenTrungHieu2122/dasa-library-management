@@ -142,7 +142,11 @@ LibraryManagement/
 │       └── JsonDatabase.cpp
 │
 ├── data/
-│   └── libraries.json
+│   ├── books.json
+|   ├── members.json
+|   ├── loans.json
+|   ├── reservations.json
+|   └── activities.json
 │
 ├── tests/                   # Kiểm thử
 │   ├── HashTableTest.cpp
