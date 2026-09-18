@@ -61,9 +61,6 @@ Dự án được xây dựng để đáp ứng các yêu cầu chính sau:
 ## 🗂️ Cấu trúc project
 
 ```
-```
-
-```
 LibraryManagement/
 │
 ├── docs/                    # Up các tài liệu D1, D2,...
