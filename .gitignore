@@ -1,6 +1,0 @@
-cd C:\Users\Admin\dasa-library-management
-git rm -r --cached .vscode
-git add .
-git commit -m "Bo qua thu muc .vscode (cau hinh ca nhan)"
-git pull origin main
-git push origin main
