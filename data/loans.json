@@ -1,1 +1,47 @@
-
+[
+  {
+    "loanId": "L01",
+    "bookId": "B07",
+    "memberId": "M03",
+    "borrowDate": "17-09-2026",
+    "returnDate": null,
+    "dueDate": "30-09-2026",
+    "status": "borrowing"
+  },
+  {
+    "loanId": "L02",
+    "bookId": "B02",
+    "memberId": "M01",
+    "borrowDate": "12-09-2026",
+    "returnDate": "20-09-2026",
+    "dueDate": "26-09-2026",
+    "status": "returned"
+  },
+  {
+    "loanId": "L03",
+    "bookId": "B14",
+    "memberId": "M05",
+    "borrowDate": "15-09-2026",
+    "returnDate": null,
+    "dueDate": "29-09-2026",
+    "status": "borrowing"
+  },
+  {
+    "loanId": "L04",
+    "bookId": "B09",
+    "memberId": "M02",
+    "borrowDate": "08-09-2026",
+    "returnDate": null,
+    "dueDate": "22-09-2026",
+    "status": "overdue"
+  },
+  {
+    "loanId": "L05",
+    "bookId": "B16",
+    "memberId": "M04",
+    "borrowDate": "18-09-2026",
+    "returnDate": null,
+    "dueDate": "02-10-2026",
+    "status": "borrowing"
+  }
+]
