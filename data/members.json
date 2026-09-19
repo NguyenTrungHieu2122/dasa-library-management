@@ -3,4 +3,46 @@
     "memberId":"M01",
     "fullname":"Truong Hoang Phuc",
     "phone": "0799827172",
-    
+    "joinDate": "2007-09-01",
+    "status": "acitive",
+    "totalBorrowBooks": 4,
+    "maxBorrow": 50,
+  }
+[
+  {
+    "memberId": "M02",
+    "fullname": "Nguyen Minh Phat",
+    "phone": "0913827465",
+    "joinDate": "2006-03-14",
+    "status": "active",
+    "totalBorrowBooks": 7,
+    "maxBorrow": 30
+  },
+  {
+    "memberId": "M03",
+    "fullname": "Nguyen Trung Hieu",
+    "phone": "0987452310",
+    "joinDate": "2008-11-22",
+    "status": "active",
+    "totalBorrowBooks": 12,
+    "maxBorrow": 40
+  },
+  {
+    "memberId": "M04",
+    "fullname": "Bui Trung Tin",
+    "phone": "0705128394",
+    "joinDate": "2005-07-09",
+    "status": "active",
+    "totalBorrowBooks": 3,
+    "maxBorrow": 20
+  },
+  {
+    "memberId": "M05",
+    "fullname": "Nguyen Thanh Khang",
+    "phone": "0836194275",
+    "joinDate": "2009-01-27",
+    "status": "active",
+    "totalBorrowBooks": 18,
+    "maxBorrow": 50
+  }
+]
