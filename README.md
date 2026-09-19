@@ -89,15 +89,15 @@ LibraryManagement/
 │   │   ├── structures/
 │   │   │   ├── Node.h
 │   │   │   ├── Node.cpp
-│   │   │   ├── LinkedList.h
+│   │   │   ├── LinkedList.h    #Dùng thư viện có sẵn
 │   │   │   ├── LinkedList.cpp
 │   │   │   ├── HashTable.h
 │   │   │   ├── HashTable.cpp
-│   │   │   ├── Queue.h
+│   │   │   ├── Queue.h         #Dùng thư viện có sẵn
 │   │   │   ├── Queue.cpp
 │   │   │   ├── MinHeap.h
 │   │   │   ├── MinHeap.cpp
-│   │   │   ├── CircularQueue.h
+│   │   │   ├── CircularQueue.h   #Dùng thư viện có sẵn
 │   │   │   └── CircularQueue.cpp
 │   │   │
 │   │   ├── algorithms/
