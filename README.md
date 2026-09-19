@@ -63,18 +63,20 @@ Dự án được xây dựng để đáp ứng các yêu cầu chính sau:
 ```
 LibraryManagement/
 │
-├── docs/                    # Up các tài liệu D1, D2,...
+├── docs/		# Up các tài liệu D1, D2,...
 │
 ├── src/
 │   ├── main.cpp
 │   │
-│   ├── presentation/        # Tầng giao diện (visualization)
+│   ├── presentation/              #Tầng giao diện (visualization)
 │   │   ├── index.html
 │   │   ├── style.css
 │   │   └── script.js
 │   │
-│   ├── dsa_core/            # Tầng xử lý nghiệp vụ + DSA + thuật toán
+│   ├── dsa_core/                  #Tầng Xử lý nghiệp vụ + DSA + Thuật toán
+│   │   |
 │   │   ├── models/
+│   │   │   |
 │   │   │   ├── Book.h
 │   │   │   ├── Book.cpp
 │   │   │   ├── Member.h
@@ -87,28 +89,28 @@ LibraryManagement/
 │   │   │   └── Activity.cpp
 │   │   │
 │   │   ├── structures/
+│   │   │   |
 │   │   │   ├── Node.h
-│   │   │   ├── Node.cpp
-│   │   │   ├── LinkedList.h    #Dùng thư viện có sẵn
+│   │   │   ├── LinkedList.h
 │   │   │   ├── LinkedList.cpp
 │   │   │   ├── HashTable.h
 │   │   │   ├── HashTable.cpp
-│   │   │   ├── Queue.h         #Dùng thư viện có sẵn
+│   │   │   ├── Queue.h
 │   │   │   ├── Queue.cpp
 │   │   │   ├── MinHeap.h
-│   │   │   ├── MinHeap.cpp
-│   │   │   ├── CircularQueue.h   #Dùng thư viện có sẵn
-│   │   │   └── CircularQueue.cpp
+│   │   │   └── MinHeap.cpp
 │   │   │
 │   │   ├── algorithms/
+│   │   │   |
 │   │   │   ├── Search/
 │   │   │   │   ├── Search.h
-│   │   │   │   └── Search.cpp   
+│   │   │   │   └── Search.cpp
 │   │   │   └── Ranking/
 │   │   │       ├── TopK.h
 │   │   │       └── TopK.cpp
 │   │   │
 │   │   ├── repositories/
+│   │   │   |
 │   │   │   ├── BookRepository.h
 │   │   │   ├── BookRepository.cpp
 │   │   │   ├── MemberRepository.h
@@ -121,6 +123,7 @@ LibraryManagement/
 │   │   │   └── ActivityRepository.cpp
 │   │   │
 │   │   └── services/
+│   │       |
 │   │       ├── SearchService.h
 │   │       ├── SearchService.cpp
 │   │       ├── BorrowService.h
@@ -132,18 +135,18 @@ LibraryManagement/
 │   │       ├── ActivityService.h
 │   │       └── ActivityService.cpp
 │   │
-│   └── persistence/         # Tầng data
+│   └── persistence/                    		  #Tầng data
 │       ├── JsonDatabase.h
 │       └── JsonDatabase.cpp
 │
 ├── data/
-│   ├── books.json
-|   ├── members.json
-|   ├── loans.json
-|   ├── reservations.json
-|   └── activities.json
-│
-├── tests/                   # Kiểm thử
+│    ├── books.json 
+│    ├── members.json 
+│    ├── loans.json 
+│    ├── reservations.json 
+│    └── activities.json 
+│   
+├── tests/					#Kiểm thử
 │   ├── HashTableTest.cpp
 │   ├── QueueTest.cpp
 │   ├── MinHeapTest.cpp
@@ -154,7 +157,6 @@ LibraryManagement/
 ├── README.md
 └── .gitignore
 ```
-
 ---
 
 ## 🔁 Luồng hệ thống
@@ -199,7 +201,7 @@ Thuật toán, không chứa logic nghiệp vụ, không đọc/ghi file, không
 Cài đặt các cấu trúc dữ liệu tự xây dựng cho bài toán.
 
 - Chứa:
-Các cấu trúc như HashTable, Queue, MinHeap, CircularQueue, LinkedList, Node.
+Các cấu trúc như HashTable, Queue, MinHeap, LinkedList, Node.
 
 - Không chứa:
 Giao diện, không chứa dữ liệu JSON, không viết logic nghiệp vụ cao cấp như “mượn sách” hay “top K”.
@@ -208,7 +210,7 @@ Giao diện, không chứa dữ liệu JSON, không viết logic nghiệp vụ c
 Chứa các thuật toán phục vụ cho việc xử lý dữ liệu và tối ưu bài toán.
 
 - Chứa:
-Các thuật toán tìm kiếm, sắp xếp, ranking, top K, xử lý truy vấn theo khoảng hoặc theo thứ tự.
+Các thuật toán tìm kiếm, ranking, xử lý truy vấn theo khoảng hoặc theo thứ tự.
 
 - Không chứa:
 Model, không chứa code giao diện, không chứa phần đọc/ghi file.
