@@ -103,12 +103,7 @@ LibraryManagement/
 │   │   ├── algorithms/
 │   │   │   ├── Search/
 │   │   │   │   ├── Search.h
-│   │   │   │   └── Search.cpp
-│   │   │   ├── Sort/
-│   │   │   │   ├── MergeSort.h
-│   │   │   │   ├── MergeSort.cpp
-│   │   │   │   ├── QuickSort.h
-│   │   │   │   └── QuickSort.cpp
+│   │   │   │   └── Search.cpp   
 │   │   │   └── Ranking/
 │   │   │       ├── TopK.h
 │   │   │       └── TopK.cpp
