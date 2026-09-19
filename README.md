@@ -273,42 +273,14 @@ Khai báo file nguồn, thư mục include, thư viện cần liên kết, cấu
 Logic nghiệp vụ, không chứa dữ liệu JSON, không chứa giao diện.
 ---
 
-## 👥 Phân chia công việc
-
-### Thành viên 1
-
--  MC1: tra cứu theo mã sách. 
--  Phụ trách: HashTable, SearchService, BookRepository. 
-
-### Thành viên 2
-
--  MC2: duyệt / tra cứu theo khoảng. 
--  Phụ trách: cấu trúc ordered / BST nếu nhóm chốt dùng, phần logic truy vấn theo khoảng. 
-
-### Thành viên 3
-
--  Yêu cầu phát hiện 1: hàng đợi mượn / trả. 
--  Phụ trách: Queue, ReservationService, ReservationRepository. 
-
-### Thành viên 4
-
--  Yêu cầu phát hiện 2: top sách quan tâm. 
--  Phụ trách: MinHeap, TopK, StatisticService. 
-
-### Thành viên 5
-
--  Yêu cầu phát hiện 3: danh sách mượn / trả gần đây. 
--  Phụ trách: CircularQueue, ActivityService, ActivityRepository, JsonDatabase. 
-
----
-
 ## ✅ Kỳ vọng đầu ra
 
 Dự án sau khi hoàn thiện phải đáp ứng:
 
--  chạy được luồng nghiệp vụ thư viện cơ bản, 
--  phân tầng rõ ràng, 
--  dữ liệu đọc/ghi được, 
--  có cấu trúc dữ liệu / thuật toán hợp lý, 
--  có test, 
--  dễ demo và dễ bảo vệ. 
+-  chạy được luồng nghiệp vụ thư viện cơ bản 
+-  phân tầng rõ ràng 
+-  dữ liệu đọc/ghi được
+-  đầy đủ chức năng được ghi trong D2
+-  có cấu trúc dữ liệu và thuật toán hợp lý
+-  có test 
+-  dễ demo
