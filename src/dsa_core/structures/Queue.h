@@ -23,10 +23,16 @@ public:
 	}
 	T& front()//lấy phần tử đầu
 	{
+		if(q.empty()){
+			throw std::runtime_error("Queue is empty");
+		}
 		return q.front();
 	}
 	T& back()//lấy phần tử cuối
 	{
+		if(q.empty()){
+			throw std::runtime_error("Queue is empty");
+		}
 		return q.back();
 	}
 	bool isEmpty() const//kiểm tra queue có trống không
