@@ -4,13 +4,9 @@
     "queue": [
       {
         "memberId": "M03",
-        "reservedAt": "2026-09-18 15:30:00",
-        "status": "waiting"
       },
       {
         "memberId": "M05",
-        "reservedAt": "2026-09-18 16:10:00",
-        "status": "waiting"
       }
     ]
   },
@@ -19,8 +15,6 @@
     "queue": [
       {
         "memberId": "M02",
-        "reservedAt": "2026-09-19 09:00:00",
-        "status": "waiting"
       }
     ]
   },
@@ -29,13 +23,9 @@
     "queue": [
       {
         "memberId": "M03",
-        "reservedAt": "2026-09-18 15:30:00",
-        "status": "waiting"
       },
       {
         "memberId": "M05",
-        "reservedAt": "2026-09-18 16:10:00",
-        "status": "waiting"
       }
     ]
   },
@@ -44,18 +34,12 @@
     "queue": [
       {
         "memberId": "M07",
-        "reservedAt": "2026-09-17 16:10:00",
-        "status": "waiting"
       },
       {
         "memberId": "M03",
-        "reservedAt": "2026-09-18 15:30:00",
-        "status": "waiting"
       },
       {
         "memberId": "M05",
-        "reservedAt": "2026-09-18 16:10:00",
-        "status": "waiting"
       }
     ]
   }
