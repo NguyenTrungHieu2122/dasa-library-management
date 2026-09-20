@@ -74,8 +74,7 @@ void testEmpty()
     }
 }
 
-void testDequeueEmpty()
-{
+void testDequeueEmpty(){
     cout << "=====Test dequeue empty====="<<endl;
     Queue<string> q;
     try{
@@ -83,7 +82,33 @@ void testDequeueEmpty()
         cout << "FAIL"<<endl;
     }
     catch (runtime_error& e){
-        cout << "Exception caught: "<< e.what()<< endl;
+        cout << "Lỗi nè: "<< e.what()<< endl;
+        cout << "PASS"<<endl;
+    }
+}
+
+void testFrontEmpty(){
+    std::cout << "===== Test Front khi queue rỗng====="<<endl;
+    Queue<string> q;
+    try{
+        q.front();
+        cout << "FAIL"<<endl;
+    }
+    catch (std::runtime_error& e){
+        cout << "Lỗi nè " << e.what() <<endl;
+        cout << "PASS"<<endl;
+    }
+}
+
+void testBackEmpty(){
+    std::cout << "===== Test Back khi Queue rong ====="<<endl;
+    Queue<string> q;
+    try{
+        q.back();
+        cout << "FAIL"<<endl;
+    }
+    catch (std::runtime_error& e){
+        cout << "Lỗi nè: " << e.what() <<endl;
         cout << "PASS"<<endl;
     }
 }
@@ -94,4 +119,6 @@ int main()
     testFrontBack();
     testEmpty();
     testDequeueEmpty();
+	testFrontEmpty();
+	testBackEmpty();
 }
