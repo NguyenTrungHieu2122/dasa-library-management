@@ -42,60 +42,49 @@ void testDequeue(){
 
 void testFrontBack()
 {
-    cout << "\n===== Test front/back =====\n";
+    cout << "\n=====Test front/back=====\n";
     Queue<string> q;
     q.enqueue("M01");
     q.enqueue("M05");
     q.enqueue("M08");
-    if (q.front() == "M01" &&
-        q.back() == "M08")
-    {
-        cout << "front/back PASS\n";
+    if (q.front() == "M01" && q.back() == "M08"){
+        cout << "PASS"<<endl;
     }
-    else
-    {
-        cout << "front/back FAIL\n";
+    else{
+        cout << "FAIL"<<endl;
     }
 }
 
 void testEmpty()
 {
-    cout << "\n===== Test empty =====\n";
+    cout << "=====Test empty====="<<endl;
     Queue<string> q;
-    if (q.isEmpty())
-    {
-        cout << "Empty PASS\n";
+    if (q.isEmpty()){
+        cout << "PASS"<<endl;
     }
-    else
-    {
-        cout << "Empty FAIL\n";
+    else{
+        cout << "FAIL"<<endl;
     }
     q.enqueue("M01");
-    if (!q.isEmpty())
-    {
-        cout << "After enqueue PASS\n";
+    if (!q.isEmpty()){
+        cout << "PASS"<<endl;
     }
-    else
-    {
-        cout << "After enqueue FAIL\n";
+    else{
+        cout << "FAIL"<<endl;
     }
 }
 
 void testDequeueEmpty()
 {
-    cout << "\n===== Test dequeue empty =====\n";
+    cout << "=====Test dequeue empty====="<<endl;
     Queue<string> q;
-    try
-    {
+    try{
         q.dequeue();
-        cout << "dequeue empty FAIL\n";
+        cout << "FAIL"<<endl;
     }
-    catch (runtime_error& e)
-    {
-        cout << "Exception caught: "
-             << e.what()
-             << endl;
-        cout << "dequeue empty PASS\n";
+    catch (runtime_error& e){
+        cout << "Exception caught: "<< e.what()<< endl;
+        cout << "PASS"<<endl;
     }
 }
 int main()
