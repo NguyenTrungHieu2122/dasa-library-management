@@ -1,14 +1,13 @@
 [
   {
-    "memberId":"M01",
-    "fullname":"Truong Hoang Phuc",
+    "memberId": "M01",
+    "fullname": "Truong Hoang Phuc",
     "phone": "0799827172",
     "joinDate": "2007-09-01",
-    "status": "acitive",
+    "status": "active",
     "totalBorrowBooks": 4,
-    "maxBorrow": 50,
-  }
-[
+    "maxBorrow": 50
+  },
   {
     "memberId": "M02",
     "fullname": "Nguyen Minh Phat",
