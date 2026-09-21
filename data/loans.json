@@ -1,7 +1,7 @@
 [
   {
     "loanId": "L01",
-    "bookId": "B07",
+    "bookId": "TLHH",
     "memberId": "M03",
     "borrowDate": "17-09-2026",
     "returnDate": null,
@@ -10,7 +10,7 @@
   },
   {
     "loanId": "L02",
-    "bookId": "B02",
+    "bookId": "MATH",
     "memberId": "M01",
     "borrowDate": "12-09-2026",
     "returnDate": "20-09-2026",
@@ -19,7 +19,7 @@
   },
   {
     "loanId": "L03",
-    "bookId": "B14",
+    "bookId": "DIGR",
     "memberId": "M05",
     "borrowDate": "15-09-2026",
     "returnDate": null,
@@ -28,7 +28,7 @@
   },
   {
     "loanId": "L04",
-    "bookId": "B09",
+    "bookId": "MAT2",
     "memberId": "M02",
     "borrowDate": "08-09-2026",
     "returnDate": null,
@@ -37,7 +37,7 @@
   },
   {
     "loanId": "L05",
-    "bookId": "B16",
+    "bookId": "CAAL",
     "memberId": "M04",
     "borrowDate": "18-09-2026",
     "returnDate": null,
