@@ -1,222 +1,423 @@
 [
   {
-    "bookId": "B01",
+    "bookId": "DASA",
     "title": "Cấu trúc dữ liệu và giải thuật",
     "author": "Vũ Đình Bảo",
     "publisher": "NXB Đại học Quốc Gia",
     "publishYear": 2018,
     "category": "Computer Science",
-    "totalCopies": 20,
-    "availableCopies": 5,
+    "totalCopies": 10,
+    "availableCopies": 6,
     "borrowCount": 20,
-    "status": "available"
+    "copies":[
+      {"copyId":"DASA-01","status":"available"},
+      {"copyId":"DASA-02","status":"borrowing"},
+      {"copyId":"DASA-03","status":"available"},
+      {"copyId":"DASA-04","status":"borrowing"},      
+      {"copyId":"DASA-05","status":"borrowing"},      
+      {"copyId":"DASA-06","status":"available"},      
+      {"copyId":"DASA-07","status":"available"},      
+      {"copyId":"DASA-08","status":"available"},      
+      {"copyId":"DASA-09","status":"borrowing"},      
+      {"copyId":"DASA-10","status":"available"}
+    ]
   },
   {
-    "bookId": "B02",
+    "bookId": "MATH",
     "title": "Đại số tuyến tính",
     "author": "Nguyễn Khắc Tín",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2022,
     "category": "Natural Science",
-    "totalCopies": 15,
+    "totalCopies": 10,
     "availableCopies": 8,
     "borrowCount": 30,
-    "status": "available"
+    "copies": [
+      {"copyId":"MATH-01","status":"available"},
+      {"copyId":"MATH-02","status":"available"},
+      {"copyId":"MATH-03","status":"available"},
+      {"copyId":"MATH-04","status":"available"},
+      {"copyId":"MATH-05","status":"available"},
+      {"copyId":"MATH-06","status":"available"},
+      {"copyId":"MATH-07","status":"available"},
+      {"copyId":"MATH-08","status":"available"},
+      {"copyId":"MATH-09","status":"borrowing"},
+      {"copyId":"MATH-10","status":"borrowing"}
+    ]
   },
+
   {
-    "bookId": "B03",
+    "bookId": "GDQP",
     "title": "Giáo dục quốc phòng",
     "author": "Nguyễn Văn Khỏe",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2015,
     "category": "National Defense",
-    "totalCopies": 27,
+    "totalCopies": 10,
     "availableCopies": 2,
     "borrowCount": 25,
-    "status": "available"
+    "copies": [
+      {"copyId":"GDQP-01","status":"available"},
+      {"copyId":"GDQP-02","status":"available"},
+      {"copyId":"GDQP-03","status":"borrowing"},
+      {"copyId":"GDQP-04","status":"borrowing"},
+      {"copyId":"GDQP-05","status":"borrowing"},
+      {"copyId":"GDQP-06","status":"borrowing"},
+      {"copyId":"GDQP-07","status":"borrowing"},
+      {"copyId":"GDQP-08","status":"borrowing"},
+      {"copyId":"GDQP-09","status":"borrowing"},
+      {"copyId":"GDQP-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B04",
+    "bookId": "MAT1",
     "title": "Toán 1",
     "author": "Lê Thanh Cường",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2000,
     "category": "Natural Science",
-    "totalCopies": 19,
+    "totalCopies": 10,
     "availableCopies": 8,
     "borrowCount": 20,
-    "status": "available"
+    "copies": [
+      {"copyId":"MAT1-01","status":"available"},
+      {"copyId":"MAT1-02","status":"available"},
+      {"copyId":"MAT1-03","status":"available"},
+      {"copyId":"MAT1-04","status":"available"},
+      {"copyId":"MAT1-05","status":"available"},
+      {"copyId":"MAT1-06","status":"available"},
+      {"copyId":"MAT1-07","status":"available"},
+      {"copyId":"MAT1-08","status":"available"},
+      {"copyId":"MAT1-09","status":"borrowing"},
+      {"copyId":"MAT1-10","status":"borrowing"}
+    ]
   },
+
   {
-    "bookId": "B05",
+    "bookId": "GELA",
     "title": "Pháp luật đại cương",
     "author": "Trương Thị Tường Vi",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2012,
     "category": "Legal Science",
-    "totalCopies": 23,
-    "availableCopies": 23,
+    "totalCopies": 10,
+    "availableCopies": 10,
     "borrowCount": 0,
-    "status": "available"
+    "copies": [
+      {"copyId":"GELA-01","status":"available"},
+      {"copyId":"GELA-02","status":"available"},
+      {"copyId":"GELA-03","status":"available"},
+      {"copyId":"GELA-04","status":"available"},
+      {"copyId":"GELA-05","status":"available"},
+      {"copyId":"GELA-06","status":"available"},
+      {"copyId":"GELA-07","status":"available"},
+      {"copyId":"GELA-08","status":"available"},
+      {"copyId":"GELA-09","status":"available"},
+      {"copyId":"GELA-10","status":"available"}
+    ]
   },
   {
-    "bookId": "B06",
+    "bookId": "LTWP",
     "title": "Lập trình web",
     "author": "Nguyễn Trần Thi Văn",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2025,
     "category": "Computer Science",
-    "totalCopies": 27,
+    "totalCopies": 10,
     "availableCopies": 8,
     "borrowCount": 20,
-    "status": "available"
+    "copies": [
+      {"copyId":"LTWP-01","status":"available"},
+      {"copyId":"LTWP-02","status":"available"},
+      {"copyId":"LTWP-03","status":"available"},
+      {"copyId":"LTWP-04","status":"available"},
+      {"copyId":"LTWP-05","status":"available"},
+      {"copyId":"LTWP-06","status":"available"},
+      {"copyId":"LTWP-07","status":"available"},
+      {"copyId":"LTWP-08","status":"available"},
+      {"copyId":"LTWP-09","status":"borrowing"},
+      {"copyId":"LTWP-10","status":"borrowing"}
+    ]
   },
+
   {
-    "bookId": "B07",
+    "bookId": "TLHH",
     "title": "Tập làm Hacker",
     "author": "Hiếu PC",
     "publisher": "NXB Song sắt",
     "publishYear": 2013,
     "category": "Computer Science",
-    "totalCopies": 30,
+    "totalCopies": 10,
     "availableCopies": 0,
     "borrowCount": 50,
-    "status": "unavailable"
+    "copies": [
+      {"copyId":"TLHH-01","status":"borrowing"},
+      {"copyId":"TLHH-02","status":"borrowing"},
+      {"copyId":"TLHH-03","status":"borrowing"},
+      {"copyId":"TLHH-04","status":"borrowing"},
+      {"copyId":"TLHH-05","status":"borrowing"},
+      {"copyId":"TLHH-06","status":"borrowing"},
+      {"copyId":"TLHH-07","status":"borrowing"},
+      {"copyId":"TLHH-08","status":"borrowing"},
+      {"copyId":"TLHH-09","status":"borrowing"},
+      {"copyId":"TLHH-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B08",
-    "title": "Vật lý 1",
-    "author": "Trần Ngọc Dũng",
-    "publisher": "NXB Đại học Quốc gia",
-    "publishYear": 2024,
-    "category": "Natural Science",
-    "totalCopies": 40,
-    "availableCopies": 30,
-    "borrowCount": 40,
-    "status": "available"
-  },
-  {
-    "bookId": "B09",
+    "bookId": "MAT2",
     "title": "Toán 2",
     "author": "Nguyễn Minh Hải",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2000,
     "category": "Natural Science",
-    "totalCopies": 20,
-    "availableCopies": 20,
+    "totalCopies": 10,
+    "availableCopies": 10,
     "borrowCount": 25,
-    "status": "available"
+    "copies": [
+      {"copyId":"MAT2-01","status":"available"},
+      {"copyId":"MAT2-02","status":"available"},
+      {"copyId":"MAT2-03","status":"available"},
+      {"copyId":"MAT2-04","status":"available"},
+      {"copyId":"MAT2-05","status":"available"},
+      {"copyId":"MAT2-06","status":"available"},
+      {"copyId":"MAT2-07","status":"available"},
+      {"copyId":"MAT2-08","status":"available"},
+      {"copyId":"MAT2-09","status":"available"},
+      {"copyId":"MAT2-10","status":"available"}
+    ]
   },
   {
-    "bookId": "B10",
+    "bookId": "MATK",
     "title": "Xác suất thống kê",
     "author": "Nguyễn Ngọc Vinh",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2020,
     "category": "Natural Science",
-    "totalCopies": 40,
+    "totalCopies": 10,
     "availableCopies": 1,
     "borrowCount": 40,
-    "status": "available"
+    "copies": [
+      {"copyId":"MATK-01","status":"available"},
+      {"copyId":"MATK-02","status":"borrowing"},
+      {"copyId":"MATK-03","status":"borrowing"},
+      {"copyId":"MATK-04","status":"borrowing"},
+      {"copyId":"MATK-05","status":"borrowing"},
+      {"copyId":"MATK-06","status":"borrowing"},
+      {"copyId":"MATK-07","status":"borrowing"},
+      {"copyId":"MATK-08","status":"borrowing"},
+      {"copyId":"MATK-09","status":"borrowing"},
+      {"copyId":"MATK-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B11",
+    "bookId": "VTNG",
     "title": "Vua trắc nghiệm",
     "author": "Phạm Hữu Giang",
     "publisher": "NXB Hồng Đức",
     "publishYear": 2025,
     "category": "Natural Science",
-    "totalCopies": 50,
+    "totalCopies": 10,
     "availableCopies": 0,
     "borrowCount": 60,
-    "status": "unavailable"
+    "copies": [
+      {"copyId":"VTNG-01","status":"borrowing"},
+      {"copyId":"VTNG-02","status":"borrowing"},
+      {"copyId":"VTNG-03","status":"borrowing"},
+      {"copyId":"VTNG-04","status":"borrowing"},
+      {"copyId":"VTNG-05","status":"borrowing"},
+      {"copyId":"VTNG-06","status":"borrowing"},
+      {"copyId":"VTNG-07","status":"borrowing"},
+      {"copyId":"VTNG-08","status":"borrowing"},
+      {"copyId":"VTNG-09","status":"borrowing"},
+      {"copyId":"VTNG-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B12",
+    "bookId": "IVNC",
     "title": "Cơ sở văn hóa Việt Nam",
     "author": "Đỗ Thùy Trang",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2020,
     "category": "Social Science",
-    "totalCopies": 20,
+    "totalCopies": 10,
     "availableCopies": 2,
     "borrowCount": 30,
-    "status": "available"
+    "copies": [
+      {"copyId":"IVNC-01","status":"available"},
+      {"copyId":"IVNC-02","status":"available"},
+      {"copyId":"IVNC-03","status":"borrowing"},
+      {"copyId":"IVNC-04","status":"borrowing"},
+      {"copyId":"IVNC-05","status":"borrowing"},
+      {"copyId":"IVNC-06","status":"borrowing"},
+      {"copyId":"IVNC-07","status":"borrowing"},
+      {"copyId":"IVNC-08","status":"borrowing"},
+      {"copyId":"IVNC-09","status":"borrowing"},
+      {"copyId":"IVNC-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B13",
+    "bookId": "LLCT",
     "title": "Triết học Mác Lê-nin",
     "author": "Hà Huyền Hoài Vân",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2010,
     "category": "Social Science",
-    "totalCopies": 15,
+    "totalCopies": 10,
     "availableCopies": 3,
     "borrowCount": 20,
-    "status": "available"
+    "copies": [
+      {"copyId":"LLCT-01","status":"available"},
+      {"copyId":"LLCT-02","status":"available"},
+      {"copyId":"LLCT-03","status":"available"},
+      {"copyId":"LLCT-04","status":"borrowing"},
+      {"copyId":"LLCT-05","status":"borrowing"},
+      {"copyId":"LLCT-06","status":"borrowing"},
+      {"copyId":"LLCT-07","status":"borrowing"},
+      {"copyId":"LLCT-08","status":"borrowing"},
+      {"copyId":"LLCT-09","status":"borrowing"},
+      {"copyId":"LLCT-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B14",
+    "bookId": "DIGR",
     "title": "Toán rời rạc và lý thuyết đồ thị",
     "author": "Nguyễn Quang Ngọc",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2019,
     "category": "Natural Science",
-    "totalCopies": 29,
+    "totalCopies": 10,
     "availableCopies": 0,
     "borrowCount": 30,
-    "status": "unavailable"
+    "copies": [
+      {"copyId":"DIGR-01","status":"borrowing"},
+      {"copyId":"DIGR-02","status":"borrowing"},
+      {"copyId":"DIGR-03","status":"borrowing"},
+      {"copyId":"DIGR-04","status":"borrowing"},
+      {"copyId":"DIGR-05","status":"borrowing"},
+      {"copyId":"DIGR-06","status":"borrowing"},
+      {"copyId":"DIGR-07","status":"borrowing"},
+      {"copyId":"DIGR-08","status":"borrowing"},
+      {"copyId":"DIGR-09","status":"borrowing"},
+      {"copyId":"DIGR-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B15",
+    "bookId": "PHYS",
+    "title": "Vật lý 1",
+    "author": "Trần Ngọc Dũng",
+    "publisher": "NXB Đại học Quốc gia",
+    "publishYear": 2024,
+    "category": "Natural Science",
+    "totalCopies": 10,
+    "availableCopies": 10,
+    "borrowCount": 40,
+    "copies": [
+      {"copyId":"PHYS-01","status":"available"},
+      {"copyId":"PHYS-02","status":"available"},
+      {"copyId":"PHYS-03","status":"available"},
+      {"copyId":"PHYS-04","status":"available"},
+      {"copyId":"PHYS-05","status":"available"},
+      {"copyId":"PHYS-06","status":"available"},
+      {"copyId":"PHYS-07","status":"available"},
+      {"copyId":"PHYS-08","status":"available"},
+      {"copyId":"PHYS-09","status":"available"},
+      {"copyId":"PHYS-10","status":"available"}
+    ]
+  }
+  {
+    "bookId": "EEEN",
     "title": "Điện tử căn bản",
     "author": "Trịnh Hoài Ân",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2018,
     "category": "Natural Science",
-    "totalCopies": 30,
+    "totalCopies": 10,
     "availableCopies": 10,
     "borrowCount": 26,
-    "status": "available"
+    "copies": [
+      {"copyId":"EEEN-01","status":"available"},
+      {"copyId":"EEEN-02","status":"available"},
+      {"copyId":"EEEN-03","status":"available"},
+      {"copyId":"EEEN-04","status":"available"},
+      {"copyId":"EEEN-05","status":"available"},
+      {"copyId":"EEEN-06","status":"available"},
+      {"copyId":"EEEN-07","status":"available"},
+      {"copyId":"EEEN-08","status":"available"},
+      {"copyId":"EEEN-09","status":"available"},
+      {"copyId":"EEEN-10","status":"available"}
+    ]
   },
   {
-    "bookId": "B16",
+    "bookId": "CAAL",
     "title": "Kiến trúc máy tính và hợp ngữ",
     "author": "Võ Lê Phúc Hậu",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2022,
     "category": "Computer Science",
-    "totalCopies": 27,
+    "totalCopies": 10,
     "availableCopies": 9,
     "borrowCount": 20,
-    "status": "available"
+    "copies": [
+      {"copyId":"CAAL-01","status":"available"},
+      {"copyId":"CAAL-02","status":"available"},
+      {"copyId":"CAAL-03","status":"available"},
+      {"copyId":"CAAL-04","status":"available"},
+      {"copyId":"CAAL-05","status":"available"},
+      {"copyId":"CAAL-06","status":"available"},
+      {"copyId":"CAAL-07","status":"available"},
+      {"copyId":"CAAL-08","status":"available"},
+      {"copyId":"CAAL-09","status":"available"},
+      {"copyId":"CAAL-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B17",
+    "bookId": "IPPA",
     "title": "Lập trình Python",
     "author": "Trần Trọng Bình",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2026,
     "category": "Computer Science",
-    "totalCopies": 36,
+    "totalCopies": 10,
     "availableCopies": 9,
     "borrowCount": 41,
-    "status": "available"
+    "copies": [
+      {"copyId":"IPPA-01","status":"available"},
+      {"copyId":"IPPA-02","status":"available"},
+      {"copyId":"IPPA-03","status":"available"},
+      {"copyId":"IPPA-04","status":"available"},
+      {"copyId":"IPPA-05","status":"available"},
+      {"copyId":"IPPA-06","status":"available"},
+      {"copyId":"IPPA-07","status":"available"},
+      {"copyId":"IPPA-08","status":"available"},
+      {"copyId":"IPPA-09","status":"available"},
+      {"copyId":"IPPA-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B18",
+    "bookId": "OOPR",
     "title": "Lập trình hướng đối tượng",
     "author": "Nguyễn Minh Đạo",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2025,
     "category": "Computer Science",
-    "totalCopies": 8,
+    "totalCopies": 10,
     "availableCopies": 1,
     "borrowCount": 20,
-    "status": "available"
+    "copies": [
+      {"copyId":"OOPR-01","status":"available"},
+      {"copyId":"OOPR-02","status":"borrowing"},
+      {"copyId":"OOPR-03","status":"borrowing"},
+      {"copyId":"OOPR-04","status":"borrowing"},
+      {"copyId":"OOPR-05","status":"borrowing"},
+      {"copyId":"OOPR-06","status":"borrowing"},
+      {"copyId":"OOPR-07","status":"borrowing"},
+      {"copyId":"OOPR-08","status":"borrowing"},
+      {"copyId":"OOPR-09","status":"borrowing"},
+      {"copyId":"OOPR-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B19",
+    "bookId": "NEES",
     "title": "Mạng máy tính căn bản",
     "author": "Nguyễn Thị Thanh Vân",
     "publisher": "NXB Đại học Quốc gia",
@@ -225,18 +426,40 @@
     "totalCopies": 10,
     "availableCopies": 2,
     "borrowCount": 20,
-    "status": "available"
+    "copies": [
+      {"copyId":"NEES-01","status":"available"},
+      {"copyId":"NEES-02","status":"available"},
+      {"copyId":"NEES-03","status":"borrowing"},
+      {"copyId":"NEES-04","status":"borrowing"},
+      {"copyId":"NEES-05","status":"borrowing"},
+      {"copyId":"NEES-06","status":"borrowing"},
+      {"copyId":"NEES-07","status":"borrowing"},
+      {"copyId":"NEES-08","status":"borrowing"},
+      {"copyId":"NEES-09","status":"borrowing"},
+      {"copyId":"NEES-10","status":"borrowing"}
+    ]
   },
   {
-    "bookId": "B20",
+    "bookId": "CNXH",
     "title": "Chủ nghĩa xã hội khoa học",
     "author": "Hà Huyền Hoài Vân",
     "publisher": "NXB Đại học Quốc gia",
     "publishYear": 2024,
     "category": "Social Science",
-    "totalCopies": 20,
+    "totalCopies": 10,
     "availableCopies": 7,
-    "borrowCount": 30,
-    "status": "available"
+    "borrowCount": 20,
+    "copies": [
+      {"copyId":"CNXH-01","status":"available"},
+      {"copyId":"CNXH-02","status":"available"},
+      {"copyId":"CNXH-03","status":"available"},
+      {"copyId":"CNXH-04","status":"available"},
+      {"copyId":"CNXH-05","status":"available"},
+      {"copyId":"CNXH-06","status":"available"},
+      {"copyId":"CNXH-07","status":"available"},
+      {"copyId":"CNXH-08","status":"borrowing"},
+      {"copyId":"CNXH-09","status":"borrowing"},
+      {"copyId":"CNXH-10","status":"borrowing"}
+    ]
   }
 ]

@@ -1,61 +1,53 @@
 [
   {
-    "bookId": "B07",
+    "bookId": "TLHH",
     "queue": [
       {
         "memberId": "M03",
-        "reservedAt": "2026-09-18 15:30:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-18 15:30:00"
       },
       {
         "memberId": "M05",
-        "reservedAt": "2026-09-18 16:10:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-18 16:10:00"
       }
     ]
   },
   {
-    "bookId": "B14",
+    "bookId": "DIGR",
     "queue": [
       {
         "memberId": "M02",
-        "reservedAt": "2026-09-19 09:00:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-19 09:00:00"
       }
     ]
   },
   {
-    "bookId": "B12",
+    "bookId": "IVNC",
     "queue": [
       {
         "memberId": "M03",
-        "reservedAt": "2026-09-18 15:30:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-19 10:00:00"
       },
       {
         "memberId": "M05",
-        "reservedAt": "2026-09-18 16:10:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-19 10:30:00"
       }
     ]
   },
   {
-    "bookId": "B19",
+    "bookId": "NEES",
     "queue": [
       {
         "memberId": "M07",
-        "reservedAt": "2026-09-17 16:10:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-20 08:00:00"
       },
       {
         "memberId": "M03",
-        "reservedAt": "2026-09-18 15:30:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-20 08:20:00"
       },
       {
         "memberId": "M05",
-        "reservedAt": "2026-09-18 16:10:00",
-        "status": "waiting"
+        "reservedAt": "2026-09-20 08:45:00"
       }
     ]
   }
