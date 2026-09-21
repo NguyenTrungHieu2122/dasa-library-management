@@ -2,28 +2,28 @@
   {
     "activityId": "A01",
     "type": "borrow",
-    "bookId": "B07",
+    "bookId": "TLHH",
     "memberId": "M03",
     "loanId": "L01",
     "time": "2026-09-17 10:15:00",
-    "detail": "Mượn sách B07"
+    "detail": "Mượn sách TLHH"
   },
   {
     "activityId": "A02",
     "type": "return",
-    "bookId": "B02",
+    "bookId": "MATH",
     "memberId": "M01",
     "loanId": "L02",
     "time": "2026-09-18 14:20:00",
-    "detail": "Trả sách B02"
+    "detail": "Trả sách MATH"
   },
   {
     "activityId": "A03",
     "type": "reserve",
-    "bookId": "B14",
+    "bookId": "DIGR",
     "memberId": "M05",
     "reservationId": "R01",
     "time": "2026-09-18 15:05:00",
-    "detail": "Đăng ký chờ mượn B14"
+    "detail": "Đăng ký chờ mượn DIGR"
   }
 ]
