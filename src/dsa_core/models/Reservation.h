@@ -5,7 +5,7 @@
 struct reservationEntry {
     std::string memberId;
     std::string reservedAt;
-}
+};
 class reservation {
 private:
     std::string bookId;
@@ -13,8 +13,8 @@ private:
 public:
     reservation(std::string id);
     std::string getbook() const;
-    std::void addmember(std::memberId);
-    std::string removemember();
+    void addmember(std::string memberId,std string reservedAt);
+    reservationentry removemember();
     bool isempty() const;
     int size() const;
-}
+};
