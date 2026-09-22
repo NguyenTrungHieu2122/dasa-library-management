@@ -2,8 +2,9 @@
 #include <string>
 #include "../models/Reservation.h"
 
-void addmember(reservation& res, const std::string memberId, const std::string& reservedAt);
-reservationEntry getRemoveFristMember(reservation& res);
-bool isempty(reservation res);
-int size(reservation res);
+void registerRes(reservation& res, const std::string memberId, const std::string& reservedAt);
+reservationEntry getMember(reservation& res);
+bool haswaitingmem(reservation& res);
+int getwaitingcount(reservation res);
+bool cancelRes(reservation& res, std::string& memberId);
 
