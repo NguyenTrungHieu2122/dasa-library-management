@@ -1,42 +1,20 @@
 #pragma once
 #include <string>
 #include "../structures/Queue.h"
-class ReservationEntry{
-private:
+
+struct reservationEntry {
     std::string memberId;
-public:
-    ReservationEntry(std::string id) : memberId(id){
-    }
-    std::string getMemberId() const
-    {
-        return memberId;
-    }
-};
-class Reservation{
+    std::string reservedAt;
+}
+class reservation {
 private:
     std::string bookId;
-    Queue<ReservationEntry> queue;
+    Queue<reservationEntry> q;
 public:
-    Reservation(std::string id)
-        : bookId(id){
-    }
-    std::string getBookId() const{
-        return bookId;
-    }
-    Queue<ReservationEntry>& getQueue(){
-        return queue;
-    }
-    void addMember(std::string memberId){
-        ReservationEntry entry(memberId);
-        queue.enqueue(entry);
-    }
-    ReservationEntry removeMember(){
-        return queue.dequeue();
-    }
-    bool isEmpty() const{
-        return queue.isEmpty();
-    }
-    int size() const{
-        return queue.size();
-    }
-};
+    reservation(std::string id);
+    std::string getbook() const;
+    std::void addmember(std::memberId);
+    std::string removemember();
+    bool isempty() const;
+    int size() const;
+}
