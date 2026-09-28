@@ -1,0 +1,7 @@
+Q1 – Yêu cầu có cần duy trì thứ tự hay không?
+
+Đối với MC1, hệ thống cần tra cứu chính xác một đầu sách dựa trên mã định danh `bookId`. Người dùng cung cấp một mã sách cụ thể và hệ thống trả về bản ghi tương ứng hoặc thông báo không tìm thấy. Vì vậy, thao tác chính của MC1 là **find-by-key**.
+
+MC1 không yêu cầu duyệt các sách theo thứ tự, không yêu cầu truy vấn theo một khoảng mã sách và cũng không yêu cầu kết quả được sắp xếp theo `bookId` hay các thuộc tính khác. Do đó, khả năng duy trì thứ tự không phải là yêu cầu ưu tiên của MC1.
+
+Các cấu trúc có khả năng duy trì thứ tự vẫn có thể đáp ứng việc tìm kiếm theo mã, nhưng lợi thế về ordered traversal hoặc range query không trực tiếp phục vụ yêu cầu này. Vì vậy, ở bước tiếp theo cần ưu tiên xem xét các cấu trúc phù hợp với thao tác tra cứu chính xác theo key.
