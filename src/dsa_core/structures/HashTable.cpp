@@ -14,72 +14,66 @@ int HashTable::hashFunction(string key)
         hashValue = hashValue + key[i];
     }
 
-    return hashValue % TABLE_SIZE;
+    return hashValue % tableSize;
 }
 
-HashTable::HashTable()
+HashTable::HashTable(int size)
 {
-    int i;
+    tableSize = size;
+    table = new LinkedList<Book>[tableSize];
+}
 
-    for (i = 0; i < TABLE_SIZE; i++)
-    {
-        table[i] = NULL;
-    }
+HashTable::~HashTable()
+{
+    delete[] table;
 }
 
 void HashTable::insert(string key, Book book)
 {
     int index;
-    HashNode* current;
-    HashNode* newNode;
+    Node<Book>* current;
 
     index = hashFunction(key);
-    current = table[index];
+    current = table[index].getHead();
 
-    while (current != NULL)
+    while (current != nullptr)
     {
-        if (current->key == key)
+        if (current->data.getBookId() == key)
         {
-            current->book = book;
+            current->data = book;
             return;
         }
 
         current = current->next;
     }
 
-    newNode = new HashNode;
-
-    newNode->key = key;
-    newNode->book = book;
-
-    newNode->next = table[index];
-    table[index] = newNode;
+    table[index].pushFront(book);
 }
 
 Book* HashTable::search(string key)
 {
     int index;
-    HashNode* current;
+    Node<Book>* current;
 
     index = hashFunction(key);
-    current = table[index];
+    current = table[index].getHead();
 
-    while (current != NULL)
+    while (current != nullptr)
     {
-        if (current->key == key)
+        if (current->data.getBookId() == key)
         {
-            return &(current->book);
+            return &(current->data);
         }
 
         current = current->next;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool HashTable::contains(string key)
 {
-    if (search(key) != NULL)
+    if (search(key) != nullptr)
     {
         return true;
     }
@@ -90,54 +84,20 @@ bool HashTable::contains(string key)
 bool HashTable::remove(string key)
 {
     int index;
-    HashNode* current;
-    HashNode* previous;
+    Node<Book>* current;
 
     index = hashFunction(key);
-    current = table[index];
-    previous = NULL;
+    current = table[index].getHead();
 
-    while (current != NULL)
+    while (current != nullptr)
     {
-        if (current->key == key)
+        if (current->data.getBookId() == key)
         {
-            if (previous == NULL)
-            {
-                table[index] = current->next;
-            }
-            else
-            {
-                previous->next = current->next;
-            }
-
-            delete current;
-            return true;
+            return table[index].removeNode(current);
         }
 
-        previous = current;
         current = current->next;
     }
 
     return false;
-}
-
-HashTable::~HashTable()
-{
-    int i;
-    HashNode* current;
-    HashNode* temp;
-
-    for (i = 0; i < TABLE_SIZE; i++)
-    {
-        current = table[i];
-
-        while (current != NULL)
-        {
-            temp = current;
-            current = current->next;
-            delete temp;
-        }
-
-        table[i] = NULL;
-    }
 }
