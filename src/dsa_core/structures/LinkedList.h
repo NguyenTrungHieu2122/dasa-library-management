@@ -19,15 +19,20 @@ public:
     {
         while (head != nullptr)
         {
-            Node<T>* temp = head;
+            Node<T>* temp;
+
+            temp = head;
             head = head->next;
+
             delete temp;
         }
     }
 
     void pushFront(T value)
     {
-        Node<T>* newNode = new Node<T>(value);
+        Node<T>* newNode;
+
+        newNode = new Node<T>(value);
 
         newNode->next = head;
         head = newNode;
@@ -48,6 +53,40 @@ public:
     Node<T>* getHead()
     {
         return head;
+    }
+
+    bool removeNode(Node<T>* node)
+    {
+        Node<T>* current;
+        Node<T>* previous;
+
+        current = head;
+        previous = nullptr;
+
+        while (current != nullptr)
+        {
+            if (current == node)
+            {
+                if (previous == nullptr)
+                {
+                    head = current->next;
+                }
+                else
+                {
+                    previous->next = current->next;
+                }
+
+                delete current;
+                count--;
+
+                return true;
+            }
+
+            previous = current;
+            current = current->next;
+        }
+
+        return false;
     }
 };
 
