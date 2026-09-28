@@ -6,162 +6,337 @@ using namespace std;
 int main()
 {
     BookRepository repo;
-    Book bookB01;
-    Book bookB10;
+
+    Book bookDASA;
+    Book bookGELA;
+
     Book* ketQua;
+    BookCopy* copy;
     bool daXoa;
 
-    bookB01 = Book(
-        "B01",
+
+    // ==================================================
+    // TAO DU LIEU SACH DASA
+    // ==================================================
+
+    bookDASA = Book(
+        "DASA",
         "Cau truc du lieu va giai thuat",
-        "Nguyen Van A",
-        "NXB Giao Duc",
-        2020,
-        "Cong nghe thong tin",
-        20,
-        5,
-        20,
-        "available"
+        "Vu Dinh Bao",
+        "NXB Dai hoc Quoc Gia",
+        2018,
+        "Computer Science",
+        10,
+        6,
+        20
     );
 
-    bookB10 = Book(
-        "B10",
-        "Lap trinh C++",
-        "Tran Van B",
+    bookDASA.addCopy(BookCopy("DASA-01", "available"));
+    bookDASA.addCopy(BookCopy("DASA-02", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-03", "available"));
+    bookDASA.addCopy(BookCopy("DASA-04", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-05", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-06", "available"));
+    bookDASA.addCopy(BookCopy("DASA-07", "available"));
+    bookDASA.addCopy(BookCopy("DASA-08", "available"));
+    bookDASA.addCopy(BookCopy("DASA-09", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-10", "available"));
+
+
+    // ==================================================
+    // TAO DU LIEU SACH GELA
+    // ==================================================
+
+    bookGELA = Book(
+        "GELA",
+        "Phap luat dai cuong",
+        "Truong Thi Tuong Vi",
         "NXB Dai hoc Quoc Gia",
-        2022,
-        "Cong nghe thong tin",
-        15,
-        8,
-        30,
-        "available"
+        2012,
+        "Legal Science",
+        10,
+        10,
+        0
     );
+
+    bookGELA.addCopy(BookCopy("GELA-01", "available"));
+    bookGELA.addCopy(BookCopy("GELA-02", "available"));
+    bookGELA.addCopy(BookCopy("GELA-03", "available"));
+    bookGELA.addCopy(BookCopy("GELA-04", "available"));
+    bookGELA.addCopy(BookCopy("GELA-05", "available"));
+    bookGELA.addCopy(BookCopy("GELA-06", "available"));
+    bookGELA.addCopy(BookCopy("GELA-07", "available"));
+    bookGELA.addCopy(BookCopy("GELA-08", "available"));
+    bookGELA.addCopy(BookCopy("GELA-09", "available"));
+    bookGELA.addCopy(BookCopy("GELA-10", "available"));
+
+
+    // ==================================================
+    // TEST 1: ADDBOOK
+    // ==================================================
 
     cout << "===== TEST 1: ADDBOOK =====" << endl;
 
-    repo.addBook(bookB01);
-    repo.addBook(bookB10);
+    repo.addBook(bookDASA);
+    repo.addBook(bookGELA);
 
-    cout << "Da them B01 va B10" << endl;
+    if (repo.contains("DASA"))
+    {
+        cout << "PASS: Them DASA thanh cong" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Khong them duoc DASA" << endl;
+    }
+
+    if (repo.contains("GELA"))
+    {
+        cout << "PASS: Them GELA thanh cong" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Khong them duoc GELA" << endl;
+    }
+
     cout << endl;
 
+
+    // ==================================================
+    // TEST 2: FINDBYID
+    // ==================================================
 
     cout << "===== TEST 2: FINDBYID =====" << endl;
 
-    ketQua = repo.findById("B01");
+    ketQua = repo.findById("DASA");
 
     if (ketQua != NULL)
     {
-        cout << "Tim thay B01" << endl;
+        cout << "PASS: Tim thay DASA" << endl;
+        cout << "Ten sach: " << ketQua->getTitle() << endl;
+        cout << "Tac gia: " << ketQua->getAuthor() << endl;
+    }
+    else
+    {
+        cout << "FAIL: Khong tim thay DASA" << endl;
+    }
+
+    ketQua = repo.findById("GELA");
+
+    if (ketQua != NULL)
+    {
+        cout << "PASS: Tim thay GELA" << endl;
         cout << "Ten sach: " << ketQua->getTitle() << endl;
     }
     else
     {
-        cout << "LOI: Khong tim thay B01" << endl;
+        cout << "FAIL: Khong tim thay GELA" << endl;
     }
 
-    ketQua = repo.findById("B10");
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 3: KIEM TRA DU LIEU BOOK
+    // ==================================================
+
+    cout << "===== TEST 3: BOOK DATA =====" << endl;
+
+    ketQua = repo.findById("DASA");
+
+    if (ketQua != NULL &&
+        ketQua->getBookId() == "DASA" &&
+        ketQua->getTotalCopies() == 10 &&
+        ketQua->getAvailableCopies() == 6 &&
+        ketQua->getBorrowCount() == 20)
+    {
+        cout << "PASS: Du lieu DASA chinh xac" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Du lieu DASA khong chinh xac" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 4: KIEM TRA BOOKCOPY
+    // ==================================================
+
+    cout << "===== TEST 4: BOOK COPY =====" << endl;
+
+    ketQua = repo.findById("DASA");
 
     if (ketQua != NULL)
     {
-        cout << "Tim thay B10" << endl;
-        cout << "Ten sach: " << ketQua->getTitle() << endl;
+        copy = ketQua->findCopyById("DASA-01");
+
+        if (copy != NULL && copy->getStatus() == "available")
+        {
+            cout << "PASS: DASA-01 co trang thai available" << endl;
+        }
+        else
+        {
+            cout << "FAIL: DASA-01 khong chinh xac" << endl;
+        }
+
+        copy = ketQua->findCopyById("DASA-02");
+
+        if (copy != NULL && copy->getStatus() == "borrowing")
+        {
+            cout << "PASS: DASA-02 co trang thai borrowing" << endl;
+        }
+        else
+        {
+            cout << "FAIL: DASA-02 khong chinh xac" << endl;
+        }
     }
     else
     {
-        cout << "LOI: Khong tim thay B10" << endl;
+        cout << "FAIL: Khong tim thay DASA" << endl;
     }
 
     cout << endl;
 
 
-    cout << "===== TEST 3: CONTAINS =====" << endl;
+    // ==================================================
+    // TEST 5: CONTAINS
+    // ==================================================
 
-    if (repo.contains("B01"))
+    cout << "===== TEST 5: CONTAINS =====" << endl;
+
+    if (repo.contains("DASA"))
     {
-        cout << "Dung: B01 ton tai" << endl;
+        cout << "PASS: DASA ton tai" << endl;
     }
     else
     {
-        cout << "LOI: B01 khong ton tai" << endl;
+        cout << "FAIL: DASA khong ton tai" << endl;
     }
 
-    if (repo.contains("B10"))
+    if (repo.contains("GELA"))
     {
-        cout << "Dung: B10 ton tai" << endl;
+        cout << "PASS: GELA ton tai" << endl;
     }
     else
     {
-        cout << "LOI: B10 khong ton tai" << endl;
+        cout << "FAIL: GELA khong ton tai" << endl;
     }
 
-    if (!repo.contains("B99"))
+    if (!repo.contains("XXXX"))
     {
-        cout << "Dung: B99 khong ton tai" << endl;
+        cout << "PASS: XXXX khong ton tai" << endl;
     }
     else
     {
-        cout << "LOI: B99 lai ton tai" << endl;
+        cout << "FAIL: XXXX ton tai" << endl;
     }
 
     cout << endl;
 
 
-    cout << "===== TEST 4: REMOVEBOOK =====" << endl;
+    // ==================================================
+    // TEST 6: FINDBYID KEY KHONG TON TAI
+    // ==================================================
 
-    daXoa = repo.removeBook("B10");
+    cout << "===== TEST 6: FIND KEY KHONG TON TAI =====" << endl;
 
-    if (daXoa)
-    {
-        cout << "Xoa B10 thanh cong" << endl;
-    }
-    else
-    {
-        cout << "LOI: Khong xoa duoc B10" << endl;
-    }
-
-    cout << endl;
-
-
-    cout << "===== TEST 5: KIEM TRA SAU KHI XOA =====" << endl;
-
-    ketQua = repo.findById("B10");
+    ketQua = repo.findById("XXXX");
 
     if (ketQua == NULL)
     {
-        cout << "Dung: B10 da bi xoa" << endl;
+        cout << "PASS: Khong tim thay XXXX" << endl;
     }
     else
     {
-        cout << "LOI: B10 van con ton tai" << endl;
-    }
-
-    ketQua = repo.findById("B01");
-
-    if (ketQua != NULL)
-    {
-        cout << "Dung: B01 van con ton tai" << endl;
-    }
-    else
-    {
-        cout << "LOI: B01 bi mat" << endl;
+        cout << "FAIL: Tim thay XXXX" << endl;
     }
 
     cout << endl;
 
 
-    cout << "===== TEST 6: XOA KEY KHONG TON TAI =====" << endl;
+    // ==================================================
+    // TEST 7: REMOVEBOOK
+    //
+    // DASA va GELA collision trong HashTable.
+    // Xoa GELA thi DASA van phai con.
+    // ==================================================
 
-    daXoa = repo.removeBook("B99");
+    cout << "===== TEST 7: REMOVEBOOK =====" << endl;
 
-    if (!daXoa)
+    daXoa = repo.removeBook("GELA");
+
+    if (daXoa)
     {
-        cout << "Dung: Khong the xoa B99" << endl;
+        cout << "PASS: Xoa GELA thanh cong" << endl;
     }
     else
     {
-        cout << "LOI: Xoa duoc B99" << endl;
+        cout << "FAIL: Khong xoa duoc GELA" << endl;
     }
+
+    if (!repo.contains("GELA"))
+    {
+        cout << "PASS: GELA khong con trong Repository" << endl;
+    }
+    else
+    {
+        cout << "FAIL: GELA van con trong Repository" << endl;
+    }
+
+    if (repo.contains("DASA"))
+    {
+        cout << "PASS: DASA van con sau khi xoa GELA" << endl;
+    }
+    else
+    {
+        cout << "FAIL: DASA bi mat khi xoa GELA" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 8: KIEM TRA DASA SAU COLLISION
+    // ==================================================
+
+    cout << "===== TEST 8: KIEM TRA DASA SAU KHI XOA GELA =====" << endl;
+
+    ketQua = repo.findById("DASA");
+
+    if (ketQua != NULL)
+    {
+        cout << "PASS: Van tim thay DASA" << endl;
+        cout << "Ten sach: " << ketQua->getTitle() << endl;
+    }
+    else
+    {
+        cout << "FAIL: Khong tim thay DASA" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 9: REMOVE KEY KHONG TON TAI
+    // ==================================================
+
+    cout << "===== TEST 9: REMOVE KEY KHONG TON TAI =====" << endl;
+
+    daXoa = repo.removeBook("XXXX");
+
+    if (!daXoa)
+    {
+        cout << "PASS: Khong the xoa XXXX" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Xoa duoc XXXX" << endl;
+    }
+
+    cout << endl;
+
+    cout << "===== KET THUC BOOKREPOSITORY TEST =====" << endl;
 
     return 0;
 }
