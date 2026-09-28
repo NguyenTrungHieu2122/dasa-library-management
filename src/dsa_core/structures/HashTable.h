@@ -3,27 +3,21 @@
 
 #include <string>
 #include "../models/Book.h"
+#include "LinkedList.h"
 
 using namespace std;
-
-struct HashNode
-{
-    string key;
-    Book book;
-    HashNode* next;
-};
 
 class HashTable
 {
 private:
     static const int TABLE_SIZE = 10;
-    HashNode* table[TABLE_SIZE];
+
+    LinkedList<Book> table[TABLE_SIZE];
 
     int hashFunction(string key);
 
 public:
     HashTable();
-    ~HashTable();
 
     void insert(string key, Book book);
     Book* search(string key);
