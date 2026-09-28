@@ -9,6 +9,7 @@
 using namespace std;
 using namespace chrono;
 
+// Tim kiem tuyen tinh
 Book* linearSearch(vector<Book>& books, string key)
 {
     int i;
@@ -27,6 +28,7 @@ Book* linearSearch(vector<Book>& books, string key)
     return nullptr;
 }
 
+// Chay benchmark voi n Book
 void runBenchmark(int n)
 {
     vector<Book> books;
@@ -52,27 +54,40 @@ void runBenchmark(int n)
     cout << "So luong Book: " << n << endl;
     cout << "======================================" << endl;
 
-    // Tao du lieu gia lap
+    // =========================================
+    // TAO DU LIEU GIA LAP
+    // =========================================
+
     for (i = 0; i < n; i++)
     {
         id = "B" + to_string(i);
 
-        book = Book();
-        book.setBookId(id);
+        book = Book(
+            id,
+            "Book " + to_string(i),
+            "Author",
+            "Publisher",
+            2026,
+            "Test",
+            1,
+            1,
+            0
+        );
 
         books.push_back(book);
+
         hashTable.insert(id, book);
     }
 
-    // Tim phan tu gan cuoi danh sach
+    // Tim Book gan cuoi danh sach
     target = "B" + to_string(n - 1);
 
     cout << "Key can tim: " << target << endl;
     cout << "So lan tim: " << repeat << endl;
 
-    // ==============================
+    // =========================================
     // LINEAR SEARCH
-    // ==============================
+    // =========================================
 
     auto startLinear = high_resolution_clock::now();
 
@@ -93,9 +108,9 @@ void runBenchmark(int n)
             endLinear - startLinear
         ).count();
 
-    // ==============================
-    // HASH TABLE
-    // ==============================
+    // =========================================
+    // HASH TABLE SEARCH
+    // =========================================
 
     auto startHash = high_resolution_clock::now();
 
@@ -116,25 +131,37 @@ void runBenchmark(int n)
             endHash - startHash
         ).count();
 
-    // ==============================
-    // KET QUA
-    // ==============================
+    // =========================================
+    // IN KET QUA
+    // =========================================
 
     cout << "\nLinear Search:" << endl;
+
     cout << "Tong thoi gian: "
-         << linearTime << " ns" << endl;
+         << linearTime
+         << " ns"
+         << endl;
 
     cout << "Trung binh moi lan: "
          << linearTime / repeat
-         << " ns" << endl;
+         << " ns"
+         << endl;
 
     cout << "\nHash Table:" << endl;
+
     cout << "Tong thoi gian: "
-         << hashTime << " ns" << endl;
+         << hashTime
+         << " ns"
+         << endl;
 
     cout << "Trung binh moi lan: "
          << hashTime / repeat
-         << " ns" << endl;
+         << " ns"
+         << endl;
+
+    // =========================================
+    // KIEM TRA KET QUA
+    // =========================================
 
     cout << "\nKiem tra ket qua: ";
 
@@ -150,9 +177,18 @@ void runBenchmark(int n)
 
 int main()
 {
+    cout << "======================================" << endl;
+    cout << "      MC1 SEARCH BENCHMARK" << endl;
+    cout << " Linear Search vs Hash Table" << endl;
+    cout << "======================================" << endl;
+
     runBenchmark(1000);
     runBenchmark(10000);
     runBenchmark(100000);
+
+    cout << "\n======================================" << endl;
+    cout << "       BENCHMARK HOAN THANH" << endl;
+    cout << "======================================" << endl;
 
     return 0;
 }
