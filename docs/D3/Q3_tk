@@ -1,7 +1,0 @@
-Q2 – Loại key và workload của yêu cầu có đặc điểm gì?
-
-Đối với MC1, khóa được sử dụng để tra cứu là `bookId`. Đây là mã định danh của một đầu sách và được sử dụng để xác định duy nhất bản ghi sách cần tìm. Vì vậy, thao tác chính của yêu cầu là tra cứu chính xác theo key (find-by-key), thay vì tìm kiếm theo vị trí hoặc theo một khoảng giá trị.
-
-Workload của MC1 có đặc điểm là thao tác tra cứu theo `bookId` được thực hiện thường xuyên. Bên cạnh việc tra cứu, dữ liệu sách vẫn có thể thay đổi khi hệ thống thêm sách, cập nhật thông tin hoặc xóa sách. Vì vậy, cấu trúc được lựa chọn cần hỗ trợ tốt việc tra cứu theo key đồng thời không làm cho các thao tác cập nhật dữ liệu trở nên quá tốn kém.
-
-Ở quy mô dữ liệu lớn, việc duyệt tuần tự toàn bộ danh sách cho mỗi lần tra cứu không phù hợp với yêu cầu MC1. Do đó, sau Q2, các cấu trúc hỗ trợ tra cứu trực tiếp hoặc giảm đáng kể số phần tử phải kiểm tra sẽ là những ứng viên cần được tiếp tục xem xét.
