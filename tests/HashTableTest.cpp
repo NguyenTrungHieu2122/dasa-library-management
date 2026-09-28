@@ -6,218 +6,350 @@ using namespace std;
 int main()
 {
     HashTable hashTable;
-    Book bookB01;
-    Book bookB10;
-    Book bookB01Moi;
+
+    Book bookDASA;
+    Book bookGELA;
+    Book bookDASAMoi;
+
     Book* ketQua;
     bool daXoa;
 
-    bookB01 = Book(
-        "B01",
+
+    // ==================================================
+    // TAO DU LIEU SACH DASA
+    // ==================================================
+
+    bookDASA = Book(
+        "DASA",
         "Cau truc du lieu va giai thuat",
-        "Nguyen Van A",
-        "NXB Giao Duc",
-        2020,
-        "Cong nghe thong tin",
-        20,
-        5,
-        20,
-        "available"
-    );
-
-    bookB10 = Book(
-        "B10",
-        "Lap trinh C++",
-        "Tran Van B",
+        "Vu Dinh Bao",
         "NXB Dai hoc Quoc Gia",
-        2022,
-        "Cong nghe thong tin",
-        15,
-        8,
-        30,
-        "available"
+        2018,
+        "Computer Science",
+        10,
+        6,
+        20
     );
 
-    bookB01Moi = Book(
-        "B01",
-        "Cau truc du lieu va giai thuat - Ban moi",
-        "Nguyen Van A",
+    bookDASA.addCopy(BookCopy("DASA-01", "available"));
+    bookDASA.addCopy(BookCopy("DASA-02", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-03", "available"));
+    bookDASA.addCopy(BookCopy("DASA-04", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-05", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-06", "available"));
+    bookDASA.addCopy(BookCopy("DASA-07", "available"));
+    bookDASA.addCopy(BookCopy("DASA-08", "available"));
+    bookDASA.addCopy(BookCopy("DASA-09", "borrowing"));
+    bookDASA.addCopy(BookCopy("DASA-10", "available"));
+
+
+    // ==================================================
+    // TAO DU LIEU SACH GELA
+    // ==================================================
+
+    bookGELA = Book(
+        "GELA",
+        "Phap luat dai cuong",
+        "Truong Thi Tuong Vi",
         "NXB Dai hoc Quoc Gia",
-        2024,
-        "Cong nghe thong tin",
-        25,
-        15,
-        40,
-        "available"
+        2012,
+        "Legal Science",
+        10,
+        10,
+        0
     );
 
+    bookGELA.addCopy(BookCopy("GELA-01", "available"));
+    bookGELA.addCopy(BookCopy("GELA-02", "available"));
+    bookGELA.addCopy(BookCopy("GELA-03", "available"));
+    bookGELA.addCopy(BookCopy("GELA-04", "available"));
+    bookGELA.addCopy(BookCopy("GELA-05", "available"));
+    bookGELA.addCopy(BookCopy("GELA-06", "available"));
+    bookGELA.addCopy(BookCopy("GELA-07", "available"));
+    bookGELA.addCopy(BookCopy("GELA-08", "available"));
+    bookGELA.addCopy(BookCopy("GELA-09", "available"));
+    bookGELA.addCopy(BookCopy("GELA-10", "available"));
+
+
+    // ==================================================
+    // TEST 1: INSERT
+    // ==================================================
 
     cout << "===== TEST 1: INSERT =====" << endl;
 
-    hashTable.insert("B01", bookB01);
+    hashTable.insert("DASA", bookDASA);
 
-    ketQua = hashTable.search("B01");
+    ketQua = hashTable.search("DASA");
 
     if (ketQua != NULL)
     {
-        cout << "PASS: Them B01 thanh cong" << endl;
+        cout << "PASS: Them DASA thanh cong" << endl;
     }
     else
     {
-        cout << "FAIL: Khong them duoc B01" << endl;
+        cout << "FAIL: Khong them duoc DASA" << endl;
     }
 
     cout << endl;
 
+
+    // ==================================================
+    // TEST 2: COLLISION
+    // DASA va GELA deu vao bucket 1
+    // ==================================================
 
     cout << "===== TEST 2: COLLISION =====" << endl;
 
-    hashTable.insert("B10", bookB10);
+    hashTable.insert("GELA", bookGELA);
 
-    ketQua = hashTable.search("B01");
-
-    if (ketQua != NULL)
-    {
-        cout << "PASS: Tim thay B01" << endl;
-    }
-    else
-    {
-        cout << "FAIL: Khong tim thay B01" << endl;
-    }
-
-    ketQua = hashTable.search("B10");
+    ketQua = hashTable.search("DASA");
 
     if (ketQua != NULL)
     {
-        cout << "PASS: Tim thay B10" << endl;
+        cout << "PASS: Tim thay DASA sau collision" << endl;
     }
     else
     {
-        cout << "FAIL: Khong tim thay B10" << endl;
+        cout << "FAIL: Khong tim thay DASA" << endl;
+    }
+
+    ketQua = hashTable.search("GELA");
+
+    if (ketQua != NULL)
+    {
+        cout << "PASS: Tim thay GELA sau collision" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Khong tim thay GELA" << endl;
     }
 
     cout << endl;
 
 
-    cout << "===== TEST 3: DUPLICATE KEY =====" << endl;
+    // ==================================================
+    // TEST 3: KIEM TRA THONG TIN BOOK
+    // ==================================================
 
-    hashTable.insert("B01", bookB01Moi);
+    cout << "===== TEST 3: THONG TIN BOOK =====" << endl;
 
-    ketQua = hashTable.search("B01");
+    ketQua = hashTable.search("DASA");
+
+    if (ketQua != NULL)
+    {
+        cout << "Ma sach: " << ketQua->getBookId() << endl;
+        cout << "Ten sach: " << ketQua->getTitle() << endl;
+        cout << "Tac gia: " << ketQua->getAuthor() << endl;
+        cout << "Tong so ban: " << ketQua->getTotalCopies() << endl;
+        cout << "So ban co san: " << ketQua->getAvailableCopies() << endl;
+        cout << "So luot muon: " << ketQua->getBorrowCount() << endl;
+
+        cout << "PASS: Lay thong tin DASA thanh cong" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Khong tim thay DASA" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 4: KIEM TRA COPIES
+    // ==================================================
+
+    cout << "===== TEST 4: BOOK COPY =====" << endl;
+
+    ketQua = hashTable.search("DASA");
+
+    if (ketQua != NULL)
+    {
+        BookCopy* copy;
+
+        copy = ketQua->findCopyById("DASA-01");
+
+        if (copy != NULL)
+        {
+            cout << "PASS: Tim thay DASA-01" << endl;
+            cout << "Trang thai: " << copy->getStatus() << endl;
+        }
+        else
+        {
+            cout << "FAIL: Khong tim thay DASA-01" << endl;
+        }
+
+        copy = ketQua->findCopyById("DASA-02");
+
+        if (copy != NULL)
+        {
+            cout << "PASS: Tim thay DASA-02" << endl;
+            cout << "Trang thai: " << copy->getStatus() << endl;
+        }
+        else
+        {
+            cout << "FAIL: Khong tim thay DASA-02" << endl;
+        }
+    }
+    else
+    {
+        cout << "FAIL: Khong tim thay DASA" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 5: SEARCH KEY KHONG TON TAI
+    // ==================================================
+
+    cout << "===== TEST 5: SEARCH =====" << endl;
+
+    ketQua = hashTable.search("XXXX");
+
+    if (ketQua == NULL)
+    {
+        cout << "PASS: XXXX khong ton tai" << endl;
+    }
+    else
+    {
+        cout << "FAIL: Tim thay XXXX" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 6: CONTAINS
+    // ==================================================
+
+    cout << "===== TEST 6: CONTAINS =====" << endl;
+
+    if (hashTable.contains("DASA"))
+    {
+        cout << "PASS: DASA ton tai" << endl;
+    }
+    else
+    {
+        cout << "FAIL: DASA khong ton tai" << endl;
+    }
+
+    if (hashTable.contains("GELA"))
+    {
+        cout << "PASS: GELA ton tai" << endl;
+    }
+    else
+    {
+        cout << "FAIL: GELA khong ton tai" << endl;
+    }
+
+    if (!hashTable.contains("XXXX"))
+    {
+        cout << "PASS: XXXX khong ton tai" << endl;
+    }
+    else
+    {
+        cout << "FAIL: XXXX ton tai" << endl;
+    }
+
+    cout << endl;
+
+
+    // ==================================================
+    // TEST 7: DUPLICATE KEY
+    // Neu key DASA da ton tai thi cap nhat Book
+    // ==================================================
+
+    cout << "===== TEST 7: DUPLICATE KEY =====" << endl;
+
+    bookDASAMoi = Book(
+        "DASA",
+        "Cau truc du lieu va giai thuat - Ban moi",
+        "Vu Dinh Bao",
+        "NXB Dai hoc Quoc Gia",
+        2024,
+        "Computer Science",
+        10,
+        8,
+        25
+    );
+
+    hashTable.insert("DASA", bookDASAMoi);
+
+    ketQua = hashTable.search("DASA");
 
     if (ketQua != NULL &&
         ketQua->getTitle() == "Cau truc du lieu va giai thuat - Ban moi")
     {
-        cout << "PASS: B01 duoc cap nhat" << endl;
+        cout << "PASS: DASA duoc cap nhat" << endl;
         cout << "Ten moi: " << ketQua->getTitle() << endl;
     }
     else
     {
-        cout << "FAIL: B01 khong duoc cap nhat" << endl;
+        cout << "FAIL: DASA khong duoc cap nhat" << endl;
     }
 
     cout << endl;
 
 
-    cout << "===== TEST 4: SEARCH =====" << endl;
+    // ==================================================
+    // TEST 8: REMOVE GELA
+    // GELA va DASA dang collision
+    // Xoa GELA nhung DASA phai van con
+    // ==================================================
 
-    ketQua = hashTable.search("B10");
+    cout << "===== TEST 8: REMOVE =====" << endl;
 
-    if (ketQua != NULL)
-    {
-        cout << "PASS: Tim thay B10" << endl;
-        cout << "Ten sach: " << ketQua->getTitle() << endl;
-    }
-    else
-    {
-        cout << "FAIL: Khong tim thay B10" << endl;
-    }
-
-    ketQua = hashTable.search("B99");
-
-    if (ketQua == NULL)
-    {
-        cout << "PASS: B99 khong ton tai" << endl;
-    }
-    else
-    {
-        cout << "FAIL: Tim thay B99" << endl;
-    }
-
-    cout << endl;
-
-
-    cout << "===== TEST 5: CONTAINS =====" << endl;
-
-    if (hashTable.contains("B01"))
-    {
-        cout << "PASS: B01 ton tai" << endl;
-    }
-    else
-    {
-        cout << "FAIL: B01 khong ton tai" << endl;
-    }
-
-    if (!hashTable.contains("B99"))
-    {
-        cout << "PASS: B99 khong ton tai" << endl;
-    }
-    else
-    {
-        cout << "FAIL: B99 ton tai" << endl;
-    }
-
-    cout << endl;
-
-
-    cout << "===== TEST 6: REMOVE =====" << endl;
-
-    daXoa = hashTable.remove("B10");
+    daXoa = hashTable.remove("GELA");
 
     if (daXoa)
     {
-        cout << "PASS: Xoa B10 thanh cong" << endl;
+        cout << "PASS: Xoa GELA thanh cong" << endl;
     }
     else
     {
-        cout << "FAIL: Khong xoa duoc B10" << endl;
+        cout << "FAIL: Khong xoa duoc GELA" << endl;
     }
 
-    if (hashTable.search("B10") == NULL)
+    if (hashTable.search("GELA") == NULL)
     {
-        cout << "PASS: B10 khong con trong HashTable" << endl;
+        cout << "PASS: GELA khong con trong HashTable" << endl;
     }
     else
     {
-        cout << "FAIL: B10 van con trong HashTable" << endl;
+        cout << "FAIL: GELA van con trong HashTable" << endl;
     }
 
-    if (hashTable.search("B01") != NULL)
+    if (hashTable.search("DASA") != NULL)
     {
-        cout << "PASS: B01 van con sau khi xoa B10" << endl;
+        cout << "PASS: DASA van con sau khi xoa GELA" << endl;
     }
     else
     {
-        cout << "FAIL: B01 bi mat khi xoa B10" << endl;
+        cout << "FAIL: DASA bi mat khi xoa GELA" << endl;
     }
 
     cout << endl;
 
 
-    cout << "===== TEST 7: REMOVE KEY KHONG TON TAI =====" << endl;
+    // ==================================================
+    // TEST 9: REMOVE KEY KHONG TON TAI
+    // ==================================================
 
-    daXoa = hashTable.remove("B99");
+    cout << "===== TEST 9: REMOVE KEY KHONG TON TAI =====" << endl;
+
+    daXoa = hashTable.remove("XXXX");
 
     if (!daXoa)
     {
-        cout << "PASS: Khong the xoa B99" << endl;
+        cout << "PASS: Khong the xoa XXXX" << endl;
     }
     else
     {
-        cout << "FAIL: Xoa duoc B99" << endl;
+        cout << "FAIL: Xoa duoc XXXX" << endl;
     }
 
     cout << endl;
+
     cout << "===== KET THUC KIEM THU =====" << endl;
 
     return 0;
