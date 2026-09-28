@@ -2,6 +2,9 @@
 #define BOOK_H
 
 #include <string>
+#include <vector>
+#include "BookCopy.h"
+
 using namespace std;
 
 class Book
@@ -16,14 +19,15 @@ private:
     int totalCopies;
     int availableCopies;
     int borrowCount;
-    string status;
+
+    vector<BookCopy> copies;
 
 public:
     Book();
 
     Book(string bookId, string title, string author, string publisher,
          int publishYear, string category, int totalCopies,
-         int availableCopies, int borrowCount, string status);
+         int availableCopies, int borrowCount);
 
     string getBookId();
     string getTitle();
@@ -34,7 +38,8 @@ public:
     int getTotalCopies();
     int getAvailableCopies();
     int getBorrowCount();
-    string getStatus();
+
+    vector<BookCopy> getCopies();
 
     void setTitle(string title);
     void setAuthor(string author);
@@ -44,7 +49,9 @@ public:
     void setTotalCopies(int totalCopies);
     void setAvailableCopies(int availableCopies);
     void setBorrowCount(int borrowCount);
-    void setStatus(string status);
+
+    void addCopy(BookCopy copy);
+    BookCopy* findCopyById(string copyId);
 };
 
 #endif
