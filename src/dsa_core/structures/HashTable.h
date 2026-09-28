@@ -10,14 +10,14 @@ using namespace std;
 class HashTable
 {
 private:
-    static const int TABLE_SIZE = 10;
-
-    LinkedList<Book> table[TABLE_SIZE];
+    LinkedList<Book>* table;
+    int tableSize;
 
     int hashFunction(string key);
 
 public:
-    HashTable();
+    HashTable(int size = 101);
+    ~HashTable();
 
     void insert(string key, Book book);
     Book* search(string key);
