@@ -4,35 +4,50 @@
 #include "Node.h"
 
 template <typename T>
-class LinkedList {
+class LinkedList
+{
 private:
-    Node<T>* head;  // trỏ tới node đầu tiên, ban đầu chưa có node nào
-    int count;      // đếm số phần tử hiện có
+    Node<T>* head;
+    int count;
 
 public:
-    LinkedList() : head(nullptr), count(0) {}
+    LinkedList() : head(nullptr), count(0)
+    {
+    }
 
-    ~LinkedList() {          // destructor: dọn bộ nhớ khi LinkedList bị hủy
-        while (head != nullptr) {
+    ~LinkedList()
+    {
+        while (head != nullptr)
+        {
             Node<T>* temp = head;
             head = head->next;
             delete temp;
         }
     }
 
-    void pushFront(T value) {           // thêm 1 phần tử vào đầu danh sách
+    void pushFront(T value)
+    {
         Node<T>* newNode = new Node<T>(value);
+
         newNode->next = head;
         head = newNode;
+
         count++;
     }
 
-    bool isEmpty() const {
+    bool isEmpty() const
+    {
         return head == nullptr;
     }
 
-    int size() const {
+    int size() const
+    {
         return count;
+    }
+
+    Node<T>* getHead()
+    {
+        return head;
     }
 };
 
