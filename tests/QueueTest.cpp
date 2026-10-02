@@ -10,10 +10,10 @@ void testEnqueue(){
   q.enqueue("M03");
   q.enqueue("M24");
   q.enqueue("M19");
-  cout<<"size"<<q.size()<<endl;
-  cout<<"phần tử đầu tiên"<<q.front()<<endl;
-  cout<<"phần tử cuối cùng"<<q.back()<<endl;
-  if(q.size()==4 and q.front()=="M01" and q.back()=="M19"){
+  cout<<"size "<<q.size()<<endl;
+  cout<<"phần tử đầu tiên "<<q.front()<<endl;
+  cout<<"phần tử cuối cùng "<<q.back()<<endl;
+  if((q.size()==4 && q.front()=="M01") && q.back()=="M19"){
     cout<<"PASS"<<endl;
   }
   else{
@@ -29,10 +29,10 @@ void testDequeue(){
   q.enqueue("M24");
   q.enqueue("M19");
 	string member=q.dequeue();
-	cout<<"member được lấy ra"<<member<<endl;
-	cout<<"size"<<q.size()<<endl;
-	cout<<"Đứng đầu hàng đợi"<<q.front()<<endl;
-	if(member=="M01" and q.size==3 and q.front()=="M03"){
+	cout<<"member được lấy ra "<<member<<endl;
+	cout<<"size "<<q.size()<<endl;
+	cout<<"Đứng đầu hàng đợi "<<q.front()<<endl;
+	if((member=="M01" && q.size()==3) && q.front()=="M03"){
 		cout<<"PASS"<<endl;
 	}
 	else{
@@ -95,7 +95,7 @@ void testFrontEmpty(){
         cout << "FAIL"<<endl;
     }
     catch (std::runtime_error& e){
-        cout << "Lỗi nè " << e.what() <<endl;
+        cout << "Lỗi nè: " << e.what() <<endl;
         cout << "PASS"<<endl;
     }
 }
