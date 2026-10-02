@@ -47,6 +47,11 @@ bool BorrowService::borrowBook(Book& book,
 {
     BookCopy* copy;
 
+    if (borrowDate <= 0 || dueDate <= borrowDate)
+    {
+        return false;
+    }
+
     // Kiem tra tat ca dieu kien truoc
     if (canBorrow(book, copyId, member) == false)
     {
@@ -95,6 +100,11 @@ bool BorrowService::returnBook(Book& book,
 {
     BookCopy* copy;
 
+    if (returnDate <= 0)
+    {
+        return false;
+    }
+
     // Loan da tra roi
     if (loan.isReturned() == true)
     {
@@ -122,7 +132,7 @@ bool BorrowService::returnBook(Book& book,
     }
 
     // Ban sao phai dang duoc muon
-    if (copy->getStatus() != "borrowed")
+    if (copy->getStatus() != "borrowing" && copy->getStatus() != "borrowed")
     {
         return false;
     }

@@ -19,8 +19,7 @@ int main()
         "Cong nghe thong tin",
         20,
         5,
-        20,
-        "available"
+        20
     );
 
     cout << "Ma sach: " << book.getBookId() << endl;
@@ -32,7 +31,6 @@ int main()
     cout << "Tong so ban: " << book.getTotalCopies() << endl;
     cout << "So ban con lai: " << book.getAvailableCopies() << endl;
     cout << "So luot muon: " << book.getBorrowCount() << endl;
-    cout << "Trang thai: " << book.getStatus() << endl;
 
     cout << endl;
 
@@ -79,7 +77,6 @@ int main()
     book.setTotalCopies(30);
     book.setAvailableCopies(15);
     book.setBorrowCount(50);
-    book.setStatus("available");
 
     cout << "Ten moi: " << book.getTitle() << endl;
     cout << "Tac gia moi: " << book.getAuthor() << endl;
@@ -89,7 +86,6 @@ int main()
     cout << "Tong so ban moi: " << book.getTotalCopies() << endl;
     cout << "So ban con lai moi: " << book.getAvailableCopies() << endl;
     cout << "So luot muon moi: " << book.getBorrowCount() << endl;
-    cout << "Trang thai moi: " << book.getStatus() << endl;
 
     cout << endl;
 
@@ -137,8 +133,7 @@ int main()
         "Cong nghe thong tin",
         15,
         8,
-        30,
-        "available"
+        30
     );
 
     cout << "Ma sach: " << book2.getBookId() << endl;

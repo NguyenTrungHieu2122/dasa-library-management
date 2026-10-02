@@ -1,4 +1,5 @@
 #include "MinHeap.h"
+#include <stdexcept>
 
 void MinHeap::swapItems(int i, int j)
 {
@@ -61,6 +62,7 @@ void MinHeap::increaseCount(string bookId, int amount)
 
 HeapItem MinHeap::peekMax() const
 {
+    if (heap.empty()) throw std::runtime_error("Heap is empty");
     return heap[0];
 }
 

@@ -16,8 +16,8 @@ public:
 
     BookCopy(string copyId, string status);
 
-    string getCopyId();
-    string getStatus();
+    string getCopyId() const;
+    string getStatus() const;
 
     void setStatus(string status);
 };

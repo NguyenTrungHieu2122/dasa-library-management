@@ -10,12 +10,12 @@ BookCopy::BookCopy(string copyId, string status)
     this->status = status;
 }
 
-string BookCopy::getCopyId()
+string BookCopy::getCopyId() const
 {
     return copyId;
 }
 
-string BookCopy::getStatus()
+string BookCopy::getStatus() const
 {
     return status;
 }

@@ -23,52 +23,52 @@ Book::Book(string bookId, string title, string author, string publisher,
     this->borrowCount = borrowCount;
 }
 
-string Book::getBookId()
+string Book::getBookId() const
 {
     return bookId;
 }
 
-string Book::getTitle()
+string Book::getTitle() const
 {
     return title;
 }
 
-string Book::getAuthor()
+string Book::getAuthor() const
 {
     return author;
 }
 
-string Book::getPublisher()
+string Book::getPublisher() const
 {
     return publisher;
 }
 
-int Book::getPublishYear()
+int Book::getPublishYear() const
 {
     return publishYear;
 }
 
-string Book::getCategory()
+string Book::getCategory() const
 {
     return category;
 }
 
-int Book::getTotalCopies()
+int Book::getTotalCopies() const
 {
     return totalCopies;
 }
 
-int Book::getAvailableCopies()
+int Book::getAvailableCopies() const
 {
     return availableCopies;
 }
 
-int Book::getBorrowCount()
+int Book::getBorrowCount() const
 {
     return borrowCount;
 }
 
-vector<BookCopy> Book::getCopies()
+vector<BookCopy> Book::getCopies() const
 {
     return copies;
 }

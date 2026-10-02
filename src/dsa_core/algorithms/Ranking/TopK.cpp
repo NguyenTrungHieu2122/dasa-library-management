@@ -4,6 +4,7 @@ using namespace std;
 
 vector<HeapItem> getTopK(const MinHeap &heap, int k)
 {
+    if (k <= 0) return {};
     vector<HeapItem> items = heap.getAllItems();
 
     sort(items.begin(), items.end(), [](const HeapItem &a, const HeapItem &b)

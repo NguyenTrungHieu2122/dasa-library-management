@@ -29,17 +29,17 @@ public:
          int publishYear, string category, int totalCopies,
          int availableCopies, int borrowCount);
 
-    string getBookId();
-    string getTitle();
-    string getAuthor();
-    string getPublisher();
-    int getPublishYear();
-    string getCategory();
-    int getTotalCopies();
-    int getAvailableCopies();
-    int getBorrowCount();
+    string getBookId() const;
+    string getTitle() const;
+    string getAuthor() const;
+    string getPublisher() const;
+    int getPublishYear() const;
+    string getCategory() const;
+    int getTotalCopies() const;
+    int getAvailableCopies() const;
+    int getBorrowCount() const;
 
-    vector<BookCopy> getCopies();
+    vector<BookCopy> getCopies() const;
 
     void setTitle(string title);
     void setAuthor(string author);

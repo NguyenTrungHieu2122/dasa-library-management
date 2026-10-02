@@ -2,6 +2,38 @@
 
 ---
 
+## Chạy ứng dụng C++ trong VS Code
+
+Ứng dụng có bản console C++17 và giao diện web cục bộ. Cả hai đọc/ghi các tệp JSON trong thư mục `data/`; chỉ chạy một bản tại một thời điểm để tránh ghi dữ liệu đồng thời.
+
+### Yêu cầu
+
+- VS Code
+- GCC/MinGW-w64 có trong `PATH` (cấu hình build có sẵn dùng GCC)
+- Tiện ích Microsoft C/C++ trong VS Code; cần `gdb` có trong `PATH` để gỡ lỗi bằng F5
+
+### Cách chạy
+
+1. Mở thư mục gốc `dasa-library-management` trong VS Code.
+2. Nhấn `Ctrl+Shift+B` để biên dịch.
+3. Chạy bằng **Terminal → Run Task → Run Library Management**. Để gỡ lỗi bằng `F5`, cài GDB (MSYS2 UCRT64: `pacman -S mingw-w64-ucrt-x86_64-gdb`) và đảm bảo `gdb.exe` nằm trong `PATH`.
+
+`CMakeLists.txt` cũng có sẵn nếu muốn dùng tiện ích CMake Tools thay cho build task MinGW.
+
+## Chạy giao diện web cục bộ
+
+- Cài Node.js nếu máy chưa có lệnh `node`.
+- Trong VS Code chọn **Terminal → Run Task… → Start Library Web (localhost)**.
+- Mở `http://127.0.0.1:4173` trên chính máy này. Giữ terminal của web server mở khi dùng trang; nhấn `Ctrl+C` để dừng.
+- Giao diện web dùng cùng các tệp JSON trong `data/` với ứng dụng console. Không chạy console và web cùng lúc để tránh hai chương trình ghi dữ liệu đồng thời.
+- Server chỉ lắng nghe trên máy cục bộ này; người khác trên mạng chưa truy cập được.
+
+> Chạy chương trình từ thư mục gốc dự án để chương trình tìm thấy `data/`. Có thể truyền đường dẫn thư mục dữ liệu làm tham số dòng lệnh nếu cần.
+
+Các thao tác console hiện có: xem/tìm sách, xem thành viên, mượn/trả sách, đăng ký hàng đợi, xem top sách được mượn, tra cứu hạn trả và xem hoạt động gần đây. Dữ liệu được lưu lại vào các tệp JSON sau mỗi thao tác thay đổi.
+
+---
+
 ## 📖 Giới thiệu
 
 LibraryManagement là đồ án môn DSA của nhóm Que Cay, xây dựng hệ thống quản lý thư viện.
@@ -161,7 +193,7 @@ LibraryManagement/
 
 ## 🔁 Luồng hệ thống
 
-presentation/index.html → script.js → main.cpp / dsa\_core → services → repositories → structures/algorithms → RAM ↔ JsonDatabase ↔ libraries.json
+Console (`main.cpp`) → services / repositories → models, structures và algorithms → `JsonDatabase` ↔ các tệp JSON trong `data/`
 
 ---
 
