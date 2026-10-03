@@ -86,7 +86,8 @@ bool BorrowService::borrowBook(Book& book,
         book.getBookId(),
         member.getMemberId(),
         borrowDate,
-        dueDate
+        dueDate,
+        copyId
     );
 
     return true;
@@ -119,6 +120,11 @@ bool BorrowService::returnBook(Book& book,
 
     // Kiem tra Loan co thuoc dung Member khong
     if (loan.getMemberId() != member.getMemberId())
+    {
+        return false;
+    }
+
+    if (!loan.getCopyId().empty() && loan.getCopyId() != copyId)
     {
         return false;
     }

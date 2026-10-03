@@ -15,6 +15,7 @@ public:
     std::vector<Loan> loans;
     std::vector<reservation> reservations;
     std::vector<Activity> activities;
+    bool activityHistoryNeedsSave = false;
 
     void load(const std::string& dataDirectory);
     void save(const std::string& dataDirectory) const;

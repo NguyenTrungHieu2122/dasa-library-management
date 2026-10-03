@@ -2,6 +2,7 @@
 #define HASHTABLE_H
 
 #include <string>
+#include <cstddef>
 #include "../models/Book.h"
 #include "LinkedList.h"
 
@@ -12,8 +13,10 @@ class HashTable
 private:
     LinkedList<Book>* table;
     int tableSize;
+    size_t itemCount;
 
     int hashFunction(string key);
+    void resize(int newSize);
 
 public:
     HashTable(int size = 101);

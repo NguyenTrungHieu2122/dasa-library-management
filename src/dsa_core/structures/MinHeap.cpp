@@ -1,5 +1,15 @@
 #include "MinHeap.h"
 #include <stdexcept>
+#include <utility>
+
+namespace {
+bool ranksBefore(const HeapItem& left, const HeapItem& right)
+{
+    if (left.borrowCount != right.borrowCount)
+        return left.borrowCount > right.borrowCount;
+    return left.bookId < right.bookId;
+}
+}
 
 void MinHeap::swapItems(int i, int j)
 {
@@ -13,7 +23,7 @@ void MinHeap::siftUp(int i)
     while (i > 0)
     {
         int parent = (i - 1) / 2;
-        if (heap[i].borrowCount > heap[parent].borrowCount)
+        if (ranksBefore(heap[i], heap[parent]))
         {
             swapItems(i, parent);
             i = parent;
@@ -29,9 +39,9 @@ void MinHeap::siftDown(int i)
     while (true)
     {
         int left = 2 * i + 1, right = 2 * i + 2, largest = i;
-        if (left < n && heap[left].borrowCount > heap[largest].borrowCount)
+        if (left < n && ranksBefore(heap[left], heap[largest]))
             largest = left;
-        if (right < n && heap[right].borrowCount > heap[largest].borrowCount)
+        if (right < n && ranksBefore(heap[right], heap[largest]))
             largest = right;
         if (largest == i)
             break;
@@ -64,6 +74,23 @@ HeapItem MinHeap::peekMax() const
 {
     if (heap.empty()) throw std::runtime_error("Heap is empty");
     return heap[0];
+}
+
+HeapItem MinHeap::extractMax()
+{
+    if (heap.empty()) throw std::runtime_error("Heap is empty");
+    const HeapItem maximum = heap.front();
+    indexOf.erase(maximum.bookId);
+    if (heap.size() == 1) {
+        heap.pop_back();
+        return maximum;
+    }
+
+    heap.front() = std::move(heap.back());
+    heap.pop_back();
+    indexOf[heap.front().bookId] = 0;
+    siftDown(0);
+    return maximum;
 }
 
 bool MinHeap::isEmpty() const

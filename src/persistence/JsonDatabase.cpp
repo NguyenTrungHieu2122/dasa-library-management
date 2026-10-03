@@ -52,6 +52,7 @@ int number(const JsonValue& object, const std::string& key, int fallback = 0) {
 
 void JsonDatabase::load(const std::string& dataDirectory) {
     books.clear(); members.clear(); loans.clear(); reservations.clear(); activities.clear();
+    activityHistoryNeedsSave = false;
     const std::string base = dataDirectory + "/";
 
     JsonValue bookRows = readJson(base + "books.json");
@@ -80,7 +81,7 @@ void JsonDatabase::load(const std::string& dataDirectory) {
     for (size_t i = 0; i < loanRows.size(); ++i) {
         const JsonValue& row = loanRows[i];
         Loan loan(value(row, "loanId"), value(row, "bookId"), value(row, "memberId"),
-                  parseDate(value(row, "borrowDate")), parseDate(value(row, "dueDate")));
+                  parseDate(value(row, "borrowDate")), parseDate(value(row, "dueDate")), value(row, "copyId"));
         const std::string returned = value(row, "returnDate");
         if (!returned.empty()) loan.markAsReturned(parseDate(returned));
         loans.push_back(loan);
@@ -90,6 +91,8 @@ void JsonDatabase::load(const std::string& dataDirectory) {
     if (!reservationRows.isArray()) throw std::runtime_error("reservations.json phai la mot JSON array");
     for (size_t i = 0; i < reservationRows.size(); ++i) {
         reservation res; res.bookId = value(reservationRows[i], "bookId");
+        res.holdCopyId = value(reservationRows[i], "holdCopyId");
+        res.holdUntil = value(reservationRows[i], "holdUntil");
         const JsonValue& queue = reservationRows[i]["queue"];
         for (size_t j = 0; j < queue.size(); ++j)
             res.q.enqueue({value(queue[j], "memberId"), value(queue[j], "reservedAt")});
@@ -106,6 +109,9 @@ void JsonDatabase::load(const std::string& dataDirectory) {
         activity.time = value(row, "time"); activity.detail = value(row, "detail");
         activities.push_back(activity);
     }
+    const size_t loadedActivityCount = activities.size();
+    trimActivitiesToRecent(activities);
+    activityHistoryNeedsSave = activities.size() != loadedActivityCount;
 }
 
 void JsonDatabase::save(const std::string& dataDirectory) const {
@@ -141,7 +147,8 @@ void JsonDatabase::save(const std::string& dataDirectory) const {
         auto out = outputFile(dataDirectory + "/loans.json"); out << "[\n";
         for (size_t i = 0; i < loans.size(); ++i) {
             const Loan& l = loans[i]; out << "  {\"loanId\":" << jsonEscape(l.getLoanId()) << ",\"bookId\":" << jsonEscape(l.getBookId())
-                << ",\"memberId\":" << jsonEscape(l.getMemberId()) << ",\"borrowDate\":" << jsonEscape(formatDate(l.getBorrowDate()))
+                << ",\"memberId\":" << jsonEscape(l.getMemberId()) << ",\"copyId\":" << jsonEscape(l.getCopyId())
+                << ",\"borrowDate\":" << jsonEscape(formatDate(l.getBorrowDate()))
                 << ",\"returnDate\":" << (l.isReturned() ? jsonEscape(formatDate(l.getReturnDate())) : "null")
                 << ",\"dueDate\":" << jsonEscape(formatDate(l.getDueDate())) << ",\"status\":"
                 << jsonEscape(l.getStatus(todayDate()) == LoanStatus::RETURNED ? "returned" :
@@ -153,7 +160,10 @@ void JsonDatabase::save(const std::string& dataDirectory) const {
     {
         auto out = outputFile(dataDirectory + "/reservations.json"); out << "[\n";
         for (size_t i = 0; i < reservations.size(); ++i) {
-            out << "  {\"bookId\":" << jsonEscape(reservations[i].bookId) << ",\"queue\":[";
+            out << "  {\"bookId\":" << jsonEscape(reservations[i].bookId)
+                << ",\"holdCopyId\":" << jsonEscape(reservations[i].holdCopyId)
+                << ",\"holdUntil\":" << jsonEscape(reservations[i].holdUntil)
+                << ",\"queue\":[";
             Queue<reservationEntry> q = reservations[i].q; bool first = true;
             while (!q.isEmpty()) { auto entry = q.dequeue(); if (!first) out << ','; first = false;
                 out << "{\"memberId\":" << jsonEscape(entry.memberId) << ",\"reservedAt\":" << jsonEscape(entry.reservedAt) << '}'; }

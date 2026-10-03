@@ -23,3 +23,18 @@ else()
 endif()
 
 set_property(TARGET library_management PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_executable(dsa_benchmark
+    tests/Benchmark.cpp
+    src/dsa_core/models/Book.cpp
+    src/dsa_core/models/BookCopy.cpp
+    src/dsa_core/models/Loan.cpp
+    src/dsa_core/structures/BST.cpp
+    src/dsa_core/structures/HashTable.cpp
+)
+target_include_directories(dsa_benchmark PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+if(MSVC)
+    target_compile_options(dsa_benchmark PRIVATE /W4 /utf-8)
+else()
+    target_compile_options(dsa_benchmark PRIVATE -Wall -Wextra -Wpedantic)
+endif()

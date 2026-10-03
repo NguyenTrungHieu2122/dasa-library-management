@@ -44,7 +44,7 @@ void recordActivity(ActivityServiceState &state,
     a.detail        = detail;
  
     // Them vao danh sach trong bo nho
-    state.allActivities.push_back(a);
+    retainRecentActivity(state.allActivities, std::move(a));
  
     // Ghi ngay xuong file, tranh mat du lieu neu chuong trinh bi tat dot ngot
     saveAllActivities(state.allActivities, state.filepath);
@@ -54,6 +54,7 @@ ActivityServiceState initActivityService(const std::string &filepath) {
     ActivityServiceState state;
     state.filepath = filepath;
     state.allActivities = loadAllActivities(filepath);
+    trimActivitiesToRecent(state.allActivities);
     return state;
 }
  

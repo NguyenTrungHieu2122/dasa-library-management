@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..');
 const DATA = path.resolve(process.env.LIBRARY_DATA_DIR || path.join(ROOT, 'data'));
@@ -8,6 +9,50 @@ const PUBLIC = path.join(ROOT, 'src', 'presentation');
 const HOST = '127.0.0.1';
 const PORT = Number(process.env.PORT || 4173);
 const DATA_FILES = ['books', 'members', 'loans', 'reservations', 'activities'];
+const BRIDGE = path.resolve(process.env.LIBRARY_BRIDGE_PATH || path.join(ROOT, 'build', 'library_management.exe'));
+
+const core = spawn(BRIDGE, ['--web-bridge', DATA], { cwd: ROOT, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
+const replies = [];
+let replyBuffer = '';
+let coreFailure = '';
+let coreQueue = Promise.resolve();
+core.stdout.setEncoding('utf8');
+core.stdout.on('data', (chunk) => {
+  replyBuffer += chunk;
+  const lines = replyBuffer.split(/\r?\n/);
+  replyBuffer = lines.pop();
+  for (const line of lines) {
+    const pending = replies.shift();
+    if (!pending) continue;
+    try { pending.resolve(JSON.parse(line)); }
+    catch { pending.reject(new Error('DSA Core trả về dữ liệu không hợp lệ.')); }
+  }
+});
+core.stderr.setEncoding('utf8');
+core.stderr.on('data', (chunk) => { coreFailure += chunk; console.error(chunk.trim()); });
+core.on('error', (error) => {
+  coreFailure = error.message;
+  while (replies.length) replies.shift().reject(error);
+});
+core.stdin.on('error', (error) => {
+  coreFailure = error.message;
+  while (replies.length) replies.shift().reject(error);
+});
+core.on('exit', (code) => {
+  const error = new Error(`DSA Core đã dừng${code === null ? '' : ` (mã ${code})`}. ${coreFailure}`);
+  while (replies.length) replies.shift().reject(error);
+});
+
+function requestCore(value) {
+  const run = () => new Promise((resolve, reject) => {
+    if (coreFailure || core.exitCode !== null) return reject(new Error(`Không kết nối được DSA Core. ${coreFailure}`));
+    replies.push({ resolve, reject });
+    core.stdin.write(`${JSON.stringify(value)}\n`);
+  });
+  const result = coreQueue.then(run);
+  coreQueue = result.catch(() => {});
+  return result;
+}
 
 function readState() {
   const state = {};
@@ -18,63 +63,6 @@ function readState() {
     state[name] = parsed;
   }
   return state;
-}
-
-function saveState(state, names) {
-  const writes = names.map((name) => {
-    const file = path.join(DATA, `${name}.json`);
-    const temporary = `${file}.tmp`;
-    fs.writeFileSync(temporary, `${JSON.stringify(state[name], null, 2)}\n`, 'utf8');
-    return { file, temporary };
-  });
-  try {
-    for (const { file, temporary } of writes) fs.renameSync(temporary, file);
-  } catch (error) {
-    for (const { temporary } of writes) {
-      if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
-    }
-    throw error;
-  }
-}
-
-function nextId(rows, field, prefix) {
-  let maximum = 0;
-  let width = 2;
-  for (const row of rows) {
-    const id = String(row[field] || '');
-    if (!id.startsWith(prefix)) continue;
-    const suffix = id.slice(prefix.length);
-    if (!/^\d+$/.test(suffix)) continue;
-    maximum = Math.max(maximum, Number(suffix));
-    width = Math.max(width, suffix.length);
-  }
-  return `${prefix}${String(maximum + 1).padStart(width, '0')}`;
-}
-
-function isDate(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}
-
-function nowText() {
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 19).replace('T', ' ');
-}
-
-function addActivity(state, type, bookId, memberId, loanId, detail) {
-  state.activities.push({
-    activityId: nextId(state.activities, 'activityId', 'A'),
-    type,
-    bookId,
-    memberId,
-    loanId: loanId || '',
-    reservationId: '',
-    time: nowText(),
-    detail,
-  });
 }
 
 function sendJson(response, status, value) {
@@ -107,91 +95,25 @@ function readBody(request) {
 
 async function handleApi(request, response, url) {
   if (request.method === 'GET' && url.pathname === '/api/state') {
-    return sendJson(response, 200, readState());
+    const requestedWindow = Number(url.searchParams.get('windowDays') || 30);
+    const windowDays = Number.isInteger(requestedWindow) ? Math.max(1, Math.min(3650, requestedWindow)) : 30;
+    const derivedState = await requestCore({ action: 'refresh', windowDays });
+    return sendJson(response, 200, { ...readState(), ...derivedState });
   }
   if (request.method !== 'POST') return sendJson(response, 405, { error: 'Phương thức không được hỗ trợ.' });
 
   const input = await readBody(request);
-  const state = readState();
-
-  if (url.pathname === '/api/borrow') {
-    const book = state.books.find((item) => item.bookId === input.bookId);
-    const member = state.members.find((item) => item.memberId === input.memberId);
-    const copy = book?.copies?.find((item) => item.copyId === input.copyId);
-    if (!book || !member || !copy) return sendJson(response, 404, { error: 'Không tìm thấy sách, bản sao hoặc thành viên.' });
-    if (member.status !== 'active') return sendJson(response, 409, { error: 'Thành viên hiện không hoạt động.' });
-    if (member.totalBorrowBooks >= member.maxBorrow) return sendJson(response, 409, { error: 'Thành viên đã đạt giới hạn mượn.' });
-    if (book.availableCopies <= 0 || copy.status !== 'available') return sendJson(response, 409, { error: 'Bản sao này hiện không sẵn sàng.' });
-    if (!isDate(input.borrowDate) || !isDate(input.dueDate) || input.dueDate <= input.borrowDate)
-      return sendJson(response, 400, { error: 'Ngày mượn và hạn trả không hợp lệ.' });
-
-    const reservation = state.reservations.find((item) => item.bookId === book.bookId);
-    if (reservation?.queue?.length && reservation.queue[0].memberId !== member.memberId)
-      return sendJson(response, 409, { error: `Sách đang chờ thành viên ${reservation.queue[0].memberId} ở đầu hàng.` });
-
-    const loanId = nextId(state.loans, 'loanId', 'L');
-    copy.status = 'borrowing';
-    book.availableCopies -= 1;
-    book.borrowCount = (book.borrowCount || 0) + 1;
-    member.totalBorrowBooks += 1;
-    state.loans.push({ loanId, bookId: book.bookId, memberId: member.memberId,
-      borrowDate: input.borrowDate, returnDate: null, dueDate: input.dueDate, status: 'borrowing' });
-    if (reservation?.queue?.length) reservation.queue.shift();
-    addActivity(state, 'borrow', book.bookId, member.memberId, loanId, `Mượn sách ${book.bookId}`);
-    saveState(state, ['books', 'members', 'loans', 'reservations', 'activities']);
-    return sendJson(response, 201, { message: `Mượn sách thành công. Mã phiếu: ${loanId}`, loanId });
-  }
-
-  if (url.pathname === '/api/return') {
-    const loan = state.loans.find((item) => item.loanId === input.loanId);
-    if (!loan || loan.returnDate) return sendJson(response, 404, { error: 'Không tìm thấy phiếu đang mượn.' });
-    if (!isDate(input.returnDate)) return sendJson(response, 400, { error: 'Ngày trả không hợp lệ.' });
-    const book = state.books.find((item) => item.bookId === loan.bookId);
-    const member = state.members.find((item) => item.memberId === loan.memberId);
-    const copy = book?.copies?.find((item) => item.copyId === input.copyId);
-    if (!book || !member || !copy || !['borrowing', 'borrowed'].includes(copy.status))
-      return sendJson(response, 409, { error: 'Không tìm thấy bản sao đang được mượn của sách này.' });
-
-    copy.status = 'available';
-    book.availableCopies = Math.min(book.totalCopies, book.availableCopies + 1);
-    member.totalBorrowBooks = Math.max(0, member.totalBorrowBooks - 1);
-    loan.returnDate = input.returnDate;
-    loan.status = 'returned';
-    addActivity(state, 'return', book.bookId, member.memberId, loan.loanId, `Trả sách ${book.bookId}`);
-    saveState(state, ['books', 'members', 'loans', 'activities']);
-    return sendJson(response, 200, { message: 'Trả sách thành công.' });
-  }
-
-  if (url.pathname === '/api/reservations') {
-    const book = state.books.find((item) => item.bookId === input.bookId);
-    const member = state.members.find((item) => item.memberId === input.memberId);
-    if (!book || !member) return sendJson(response, 404, { error: 'Không tìm thấy sách hoặc thành viên.' });
-    if (member.status !== 'active') return sendJson(response, 409, { error: 'Thành viên hiện không hoạt động.' });
-    if (book.availableCopies > 0) return sendJson(response, 409, { error: 'Sách vẫn còn bản sẵn sàng, chưa cần vào hàng chờ.' });
-    let reservation = state.reservations.find((item) => item.bookId === book.bookId);
-    if (!reservation) {
-      reservation = { bookId: book.bookId, queue: [] };
-      state.reservations.push(reservation);
-    }
-    if (reservation.queue.some((item) => item.memberId === member.memberId))
-      return sendJson(response, 409, { error: 'Thành viên đã có trong hàng chờ sách này.' });
-    reservation.queue.push({ memberId: member.memberId, reservedAt: nowText() });
-    addActivity(state, 'reserve', book.bookId, member.memberId, '', `Đăng ký chờ mượn ${book.bookId}`);
-    saveState(state, ['reservations', 'activities']);
-    return sendJson(response, 201, { message: `Đã thêm vào hàng chờ, vị trí ${reservation.queue.length}.` });
-  }
-
-  if (url.pathname === '/api/reservations/cancel') {
-    const reservation = state.reservations.find((item) => item.bookId === input.bookId);
-    if (!reservation) return sendJson(response, 404, { error: 'Không tìm thấy hàng chờ của sách này.' });
-    const index = reservation.queue.findIndex((item) => item.memberId === input.memberId);
-    if (index < 0) return sendJson(response, 404, { error: 'Không tìm thấy thành viên trong hàng chờ.' });
-    reservation.queue.splice(index, 1);
-    saveState(state, ['reservations']);
-    return sendJson(response, 200, { message: `Đã bỏ lượt chờ của thành viên ${input.memberId}.` });
-  }
-
-  return sendJson(response, 404, { error: 'Không tìm thấy API.' });
+  const actionByPath = {
+    '/api/borrow': 'borrow',
+    '/api/return': 'return',
+    '/api/reservations': 'reserve',
+    '/api/reservations/cancel': 'cancel-reservation',
+  };
+  const action = actionByPath[url.pathname];
+  if (!action) return sendJson(response, 404, { error: 'Không tìm thấy API.' });
+  const result = await requestCore({ ...input, action });
+  if (!result.ok) return sendJson(response, result.status || 400, result);
+  return sendJson(response, action === 'borrow' || action === 'reserve' ? 201 : 200, result);
 }
 
 function serveFile(request, response, url) {
@@ -225,3 +147,7 @@ server.listen(PORT, HOST, () => {
   console.log(`Web quản lý thư viện đang chạy tại http://${HOST}:${PORT}`);
   console.log('Giữ cửa sổ terminal này mở trong lúc sử dụng web. Nhấn Ctrl+C để dừng.');
 });
+
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, () => { core.kill(); server.close(() => process.exit(0)); });
+}

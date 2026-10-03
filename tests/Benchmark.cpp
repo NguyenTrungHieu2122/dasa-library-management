@@ -37,13 +37,14 @@ Book* linearSearch(vector<Book>& books, string key)
 void runBenchmark(int n)
 {
     vector<Book> books;
-    HashTable hashTable(n * 2 + 1);
+    // Match BookRepository's default capacity and exercise automatic resizing.
+    HashTable hashTable;
 
     Book book;
     Book* result;
 
     string id;
-    string target;
+    vector<string> targets;
 
     int i;
     int repeat;
@@ -84,10 +85,14 @@ void runBenchmark(int n)
         hashTable.insert(id, book);
     }
 
-    // Tim Book gan cuoi danh sach
-    target = "B" + to_string(n - 1);
+    // Dung cung mot tap khoa truy van co seed co dinh de tranh benchmark
+    // chi do truong hop tot nhat cua phan tu vua duoc chen vao dau bucket.
+    mt19937 generator(20261003);
+    uniform_int_distribution<int> distribution(0, n - 1);
+    for (int query = 0; query < repeat; ++query)
+        targets.push_back("B" + to_string(distribution(generator)));
 
-    cout << "Key can tim: " << target << endl;
+    cout << "Tap khoa truy van: " << targets.size() << " khoa ngau nhien, seed 20261003" << endl;
     cout << "So lan tim: " << repeat << endl;
 
     // =========================================
@@ -98,7 +103,7 @@ void runBenchmark(int n)
 
     for (i = 0; i < repeat; i++)
     {
-        result = linearSearch(books, target);
+        result = linearSearch(books, targets[i]);
 
         if (result != nullptr)
         {
@@ -121,7 +126,7 @@ void runBenchmark(int n)
 
     for (i = 0; i < repeat; i++)
     {
-        result = hashTable.search(target);
+        result = hashTable.search(targets[i]);
 
         if (result != nullptr)
         {

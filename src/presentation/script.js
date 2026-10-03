@@ -4,6 +4,7 @@ const dialog = $('#actionDialog');
 let state = null;
 let currentPage = 'dashboard';
 let loanFilter = 'active';
+let topKWindowDays = 30;
 let toastTimer;
 
 const pageNames = {
@@ -64,7 +65,7 @@ async function api(url, options = {}) {
 async function loadState(showLoading = false) {
   if (showLoading) content.innerHTML = '<div class="loading-state"><span class="spinner"></span>Đang tải dữ liệu thư viện…</div>';
   try {
-    state = await api('/api/state');
+    state = await api(`/api/state?windowDays=${topKWindowDays}`);
     $('#lastUpdated').textContent = `Cập nhật lúc ${new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date())} · localhost`;
     renderPage();
   } catch (error) {
@@ -95,7 +96,7 @@ function renderDashboard() {
   const activeLoans = state.loans.filter((loan) => !loan.returnDate);
   const overdue = activeLoans.filter((loan) => loan.dueDate && loan.dueDate < localDate()).length;
   const stock = state.books.reduce((sum, book) => sum + Number(book.availableCopies || 0), 0);
-  const ranked = [...state.books].sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0)).slice(0, 5);
+  const ranked = state.topBooks || [...state.books].sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0)).slice(0, 5);
   const highest = Math.max(1, ...ranked.map((book) => Number(book.borrowCount || 0)));
   const today = new Intl.DateTimeFormat('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
   content.innerHTML = `
@@ -107,7 +108,7 @@ function renderDashboard() {
       ${metric('Quá hạn', overdue, 'Cần được xử lý', '!', overdue ? 'rose' : '')}
     </div>
     <div class="dashboard-grid">
-      <section class="panel"><div class="panel-heading"><h3>Sách được quan tâm</h3><button class="text-link" data-page="books">Mở kho sách →</button></div>
+      <section class="panel"><div class="panel-heading"><h3>Sách được quan tâm · ${Number(state.topKWindowDays || topKWindowDays)} ngày</h3><select class="filter-select" id="topKWindowDays" aria-label="Khoảng thời gian xếp hạng"><option value="7" ${topKWindowDays === 7 ? 'selected' : ''}>7 ngày</option><option value="30" ${topKWindowDays === 30 ? 'selected' : ''}>30 ngày</option><option value="90" ${topKWindowDays === 90 ? 'selected' : ''}>90 ngày</option><option value="365" ${topKWindowDays === 365 ? 'selected' : ''}>365 ngày</option></select><button class="text-link" data-page="books">Mở kho sách →</button></div>
         <div class="top-book-list">${ranked.map((book, index) => `<div class="top-book"><span class="rank ${index === 0 ? 'first' : ''}">${String(index + 1).padStart(2, '0')}</span><div class="top-book-name"><strong>${esc(book.title)}</strong><small>${esc(book.bookId)} · ${esc(book.author || 'Chưa cập nhật tác giả')}</small></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(4, Math.round((Number(book.borrowCount || 0) / highest) * 100))}%"></div></div><span class="borrow-total">${Number(book.borrowCount || 0)} lượt</span></div>`).join('')}</div>
       </section>
       <section class="panel"><div class="panel-heading"><h3>Hoạt động mới</h3><button class="text-link" data-page="activity">Xem tất cả →</button></div>${activityRows([...state.activities].reverse(), 5)}</section>
@@ -115,6 +116,11 @@ function renderDashboard() {
 }
 
 function stockStatus(book) {
+  const reservation = state.reservations.find((item) => item.bookId === book.bookId);
+  if (reservation?.holdCopyId) {
+    const holder = reservation.queue?.[0]?.memberId || 'thành viên ưu tiên';
+    return `<span class="status-pill waiting">Giữ cho ${esc(holder)}</span>`;
+  }
   if (book.availableCopies <= 0) return '<span class="status-pill out">Hết sách</span>';
   if (book.availableCopies <= 2) return '<span class="status-pill waiting">Sắp hết</span>';
   return '<span class="status-pill available">Còn sách</span>';
@@ -126,7 +132,8 @@ function bookTable(books) {
     const total = Number(book.totalCopies || 0); const available = Number(book.availableCopies || 0);
     const width = total ? Math.round((available / total) * 100) : 0;
     const fill = available === 0 ? 'none' : available <= 2 ? 'low' : '';
-    const action = available > 0
+    const reservation = state.reservations.find((item) => item.bookId === book.bookId);
+    const action = available > 0 || reservation?.holdCopyId
       ? `<button class="row-action" data-action="borrow" data-book="${esc(book.bookId)}">Mượn sách</button>`
       : `<button class="row-action" data-action="reserve" data-book="${esc(book.bookId)}">Đặt chờ</button>`;
     return `<tr><td><span class="book-id">${esc(book.bookId)}</span></td><td><div class="book-title">${esc(book.title)}</div><div class="book-author">${esc(book.author || 'Chưa cập nhật tác giả')}</div></td><td>${esc(book.category || '—')}</td><td>${stockStatus(book)}</td><td class="stock-cell"><div class="stock-text">${available} / ${total} bản</div><div class="stock-track"><div class="stock-fill ${fill}" style="width:${width}%"></div></div></td><td>${action}</td></tr>`;
@@ -165,7 +172,8 @@ function loanTable(loans) {
 }
 
 function renderLoans() {
-  const filtered = state.loans.filter((loan) => {
+  const activeLoans = state.dueLoans || state.loans.filter((loan) => !loan.returnDate);
+  const filtered = (loanFilter === 'returned' ? state.loans : activeLoans).filter((loan) => {
     if (loanFilter === 'active') return !loan.returnDate;
     if (loanFilter === 'returned') return Boolean(loan.returnDate);
     return !loan.returnDate && loan.dueDate < localDate();
@@ -209,6 +217,13 @@ function memberOptions() {
   return state.members.filter((member) => member.status === 'active').map((member) => `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)}</option>`).join('');
 }
 
+function memberOptionsForQueue(reservation) {
+  const firstWaiting = reservation?.queue?.[0]?.memberId;
+  if (!firstWaiting) return memberOptions();
+  const member = state.members.find((item) => item.memberId === firstWaiting);
+  return member ? `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)} (đầu hàng chờ)</option>` : '';
+}
+
 function availableBookOptions() {
   return state.books.filter((book) => book.availableCopies > 0).map((book) => `<option value="${esc(book.bookId)}">${esc(book.bookId)} · ${esc(book.title)}</option>`).join('');
 }
@@ -220,19 +235,31 @@ function setDialog(title, description, fields, submitLabel = 'Xác nhận', eyeb
 }
 
 function openBorrow(bookId = '') {
-  const eligibleBooks = state.books.filter((book) => book.availableCopies > 0);
+  const eligibleBooks = state.books.filter((book) => book.availableCopies > 0 ||
+    state.reservations.some((item) => item.bookId === book.bookId && item.holdCopyId));
   if (!eligibleBooks.length) return showToast('Hiện không có bản sách nào sẵn sàng để mượn.', true);
   const chosen = eligibleBooks.find((book) => book.bookId === bookId) || eligibleBooks[0];
+  const reservation = state.reservations.find((item) => item.bookId === chosen.bookId);
+  const reservedCopyId = reservation?.holdCopyId || '';
+  const eligibleCopies = (chosen.copies || []).filter((copy) => reservedCopyId
+    ? copy.copyId === reservedCopyId && copy.status === 'reserved'
+    : copy.status === 'available');
   $('#actionForm').dataset.actionType = 'borrow';
   $('#actionForm').dataset.bookId = '';
   setDialog('Tạo phiếu mượn', 'Chọn sách, bản sao và thành viên. Hạn trả phải sau ngày mượn.', `
     <div class="field"><label for="borrowBookId">Sách</label><select id="borrowBookId" required>${eligibleBooks.map((book) => `<option value="${esc(book.bookId)}" ${book.bookId === chosen.bookId ? 'selected' : ''}>${esc(book.bookId)} · ${esc(book.title)} (${book.availableCopies} bản)</option>`).join('')}</select></div>
-    <div class="field"><label for="borrowCopyId">Bản sao sẵn sàng</label><select id="borrowCopyId" required>${copyOptions(chosen, 'available')}</select></div>
-    <div class="field"><label for="borrowMemberId">Thành viên</label><select id="borrowMemberId" required>${memberOptions()}</select></div>
+    <div class="field"><label for="borrowCopyId">${reservedCopyId ? 'Bản sao được giữ' : 'Bản sao sẵn sàng'}</label><select id="borrowCopyId" required>${eligibleCopies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('')}</select></div>
+    <div class="field"><label for="borrowMemberId">Thành viên</label><select id="borrowMemberId" required>${memberOptionsForQueue(reservation)}</select></div>
     <div class="field-row"><div class="field"><label for="borrowDate">Ngày mượn</label><input id="borrowDate" type="date" value="${localDate()}" required></div><div class="field"><label for="dueDate">Hạn trả</label><input id="dueDate" type="date" value="${afterDays(14)}" required></div></div>`, 'Tạo phiếu');
   $('#borrowBookId').addEventListener('change', (event) => {
     const book = state.books.find((item) => item.bookId === event.target.value);
-    $('#borrowCopyId').innerHTML = copyOptions(book, 'available');
+    const reservation = state.reservations.find((item) => item.bookId === book?.bookId);
+    const heldId = reservation?.holdCopyId || '';
+    const copies = (book?.copies || []).filter((copy) => heldId
+      ? copy.copyId === heldId && copy.status === 'reserved'
+      : copy.status === 'available');
+    $('#borrowCopyId').innerHTML = copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
+    $('#borrowMemberId').innerHTML = memberOptionsForQueue(reservation);
   });
 }
 
@@ -316,6 +343,11 @@ $('#actionForm').addEventListener('submit', submitAction);
 $('#dialogCancel').addEventListener('click', () => dialog.close());
 $('#dialogClose').addEventListener('click', () => dialog.close());
 $('#refreshButton').addEventListener('click', () => loadState(true));
+content.addEventListener('change', (event) => {
+  if (event.target.id !== 'topKWindowDays') return;
+  topKWindowDays = Number(event.target.value);
+  loadState();
+});
 $('#mobileMenu').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
 dialog.addEventListener('close', () => { $('#actionForm').dataset.loanId = ''; $('#actionForm').dataset.bookId = ''; $('#actionForm').dataset.actionType = ''; });
 

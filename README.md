@@ -23,9 +23,12 @@
 ## Chạy giao diện web cục bộ
 
 - Cài Node.js nếu máy chưa có lệnh `node`.
+- Cài GCC/MinGW-w64 và bảo đảm `g++` nằm trong `PATH`; task web sẽ biên dịch DSA Core trước khi mở máy chủ.
 - Trong VS Code chọn **Terminal → Run Task… → Start Library Web (localhost)**.
 - Mở `http://127.0.0.1:4173` trên chính máy này. Giữ terminal của web server mở khi dùng trang; nhấn `Ctrl+C` để dừng.
 - Giao diện web dùng cùng các tệp JSON trong `data/` với ứng dụng console. Không chạy console và web cùng lúc để tránh hai chương trình ghi dữ liệu đồng thời.
+- Các thao tác mượn, trả, đặt/hủy chờ, danh sách đến hạn và Top 5 trên dashboard được xử lý qua DSA Core C++.
+- Khi trả sách có người chờ, bản sao được giữ cho người đầu hàng trong 48 giờ. Nếu hết hạn, hệ thống chuyển lượt giữ cho người tiếp theo đủ điều kiện; người đầu hàng có thể hủy lượt chờ để nhường ngay.
 - Server chỉ lắng nghe trên máy cục bộ này; người khác trên mạng chưa truy cập được.
 
 > Chạy chương trình từ thư mục gốc dự án để chương trình tìm thấy `data/`. Có thể truyền đường dẫn thư mục dữ liệu làm tham số dòng lệnh nếu cần.
@@ -62,6 +65,12 @@ Dự án được xây dựng để đáp ứng các yêu cầu chính sau:
 -  Thống kê top K sách được mượn nhiều nhất trong N ngày gần nhất. 
 -  Hiển thị các hoạt động giao dịch gần đây nhất. 
 -  Lưu trữ dữ liệu bằng JSON. 
+
+**Phạm vi MC1:** Bằng chứng tra cứu chính xác theo mã và benchmark MC1 áp dụng cho đầu sách (`bookId`) qua HashTable tự cài đặt. Tra cứu thành viên và phiếu mượn vẫn phục vụ luồng nghiệp vụ, nhưng không được tuyên bố là phần MC1 đã được tối ưu/đo benchmark.
+
+**Top K:** Số lượt quan tâm được tính từ các phiếu mượn có ngày mượn nằm trong N ngày gần nhất; giao diện cho chọn N, console nhận K và N. Hoạt động gần đây giữ tối đa 1.000 sự kiện mới nhất trong bộ nhớ và JSON.
+
+Để dựng benchmark ở cấu hình Release: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`, sau đó `cmake --build build --target dsa_benchmark`. Kết quả lần đo đã ghi trong `docs/Benchmark Results.md`.
 
 ---
 

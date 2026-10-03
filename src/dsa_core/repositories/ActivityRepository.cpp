@@ -38,6 +38,7 @@ std::vector<Activity> loadAllActivities(const std::string& filepath) {
         activity.detail = getString(item, "detail");
         activities.push_back(activity);
     }
+    trimActivitiesToRecent(activities);
     return activities;
 }
 

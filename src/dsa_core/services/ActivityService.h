@@ -4,7 +4,7 @@
 #include <vector>
 #include "../models/Activity.h" 
  
-const int DEFAULT_RECENT_COUNT = 10;
+inline constexpr int DEFAULT_RECENT_COUNT = 10;
  
 struct ActivityServiceState {
     std::vector<Activity> allActivities;
