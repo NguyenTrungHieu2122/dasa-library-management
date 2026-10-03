@@ -95,10 +95,18 @@ Dự án được xây dựng để đáp ứng các yêu cầu chính sau:
 ```
 LibraryManagement/
 │
+├── .vscode/
+│   ├── launch.json
+│   └── tasks.json
+│
 ├── docs/		# Up các tài liệu D1, D2,...
 │
 ├── src/
 │   ├── main.cpp
+│   │
+│   ├── web/                       # Web server chạy cục bộ bằng Node.js
+│   │   ├── server.js
+│   │   └── start.ps1
 │   │
 │   ├── presentation/              #Tầng giao diện (visualization)
 │   │   ├── index.html
@@ -116,27 +124,24 @@ LibraryManagement/
 │   │   │   ├── Loan.h
 │   │   │   ├── Loan.cpp
 │   │   │   ├── Reservation.h
-│   │   │   ├── Reservation.cpp
 │   │   │   ├── Activity.h
-│   │   │   └── Activity.cpp
+│   │   │   ├── BookCopy.h
+│   │   │   └── BookCopy.cpp
 │   │   │
 │   │   ├── structures/
 │   │   │   |
 │   │   │   ├── Node.h
 │   │   │   ├── LinkedList.h
-│   │   │   ├── LinkedList.cpp
 │   │   │   ├── HashTable.h
 │   │   │   ├── HashTable.cpp
 │   │   │   ├── Queue.h
-│   │   │   ├── Queue.cpp
+│   │   │   ├── BST.h
+│   │   │   ├── BST.cpp
 │   │   │   ├── MinHeap.h
 │   │   │   └── MinHeap.cpp
 │   │   │
 │   │   ├── algorithms/
 │   │   │   |
-│   │   │   ├── Search/
-│   │   │   │   ├── Search.h
-│   │   │   │   └── Search.cpp
 │   │   │   └── Ranking/
 │   │   │       ├── TopK.h
 │   │   │       └── TopK.cpp
@@ -145,8 +150,6 @@ LibraryManagement/
 │   │   │   |
 │   │   │   ├── BookRepository.h
 │   │   │   ├── BookRepository.cpp
-│   │   │   ├── MemberRepository.h
-│   │   │   ├── MemberRepository.cpp
 │   │   │   ├── LoanRepository.h
 │   │   │   ├── LoanRepository.cpp
 │   │   │   ├── ReservationRepository.h
@@ -156,8 +159,6 @@ LibraryManagement/
 │   │   │
 │   │   └── services/
 │   │       |
-│   │       ├── SearchService.h
-│   │       ├── SearchService.cpp
 │   │       ├── BorrowService.h
 │   │       ├── BorrowService.cpp
 │   │       ├── ReservationService.h
@@ -169,7 +170,8 @@ LibraryManagement/
 │   │
 │   └── persistence/                    		  #Tầng data
 │       ├── JsonDatabase.h
-│       └── JsonDatabase.cpp
+│       ├── JsonDatabase.cpp
+│       └── JsonValue.h
 │
 ├── data/
 │    ├── books.json 
@@ -182,7 +184,11 @@ LibraryManagement/
 │   ├── HashTableTest.cpp
 │   ├── QueueTest.cpp
 │   ├── MinHeapTest.cpp
-│   ├── SearchServiceTest.cpp
+│   ├── BSTTest.cpp
+│   ├── BookTest.cpp
+│   ├── BookRepositoryTest.cpp
+│   ├── BorrowServiceTest.cpp
+│   ├── Membertest.cpp
 │   └── Benchmark.cpp
 │
 ├── CMakeLists.txt

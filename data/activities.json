@@ -1,29 +1,5 @@
 [
-  {
-    "activityId": "A01",
-    "type": "borrow",
-    "bookId": "TLHH",
-    "memberId": "M03",
-    "loanId": "L01",
-    "time": "2026-09-17 10:15:00",
-    "detail": "Mượn sách TLHH"
-  },
-  {
-    "activityId": "A02",
-    "type": "return",
-    "bookId": "MATH",
-    "memberId": "M01",
-    "loanId": "L02",
-    "time": "2026-09-18 14:20:00",
-    "detail": "Trả sách MATH"
-  },
-  {
-    "activityId": "A03",
-    "type": "reserve",
-    "bookId": "DIGR",
-    "memberId": "M05",
-    "reservationId": "R01",
-    "time": "2026-09-18 15:05:00",
-    "detail": "Đăng ký chờ mượn DIGR"
-  }
+  {"activityId":"A01","type":"borrow","bookId":"TLHH","memberId":"M03","loanId":"L01","reservationId":"","time":"2026-09-17 10:15:00","detail":"Mượn sách TLHH"},
+  {"activityId":"A02","type":"return","bookId":"MATH","memberId":"M01","loanId":"L02","reservationId":"","time":"2026-09-18 14:20:00","detail":"Trả sách MATH"},
+  {"activityId":"A03","type":"reserve","bookId":"DIGR","memberId":"M05","loanId":"","reservationId":"R01","time":"2026-09-18 15:05:00","detail":"Đăng ký chờ mượn DIGR"}
 ]
