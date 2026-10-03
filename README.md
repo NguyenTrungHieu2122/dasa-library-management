@@ -34,6 +34,10 @@ Các thao tác console hiện có: xem/tìm sách, xem thành viên, mượn/tr�
 
 ---
 
+# LibraryManagement
+
+---
+
 ## 📖 Giới thiệu
 
 LibraryManagement là đồ án môn DSA của nhóm Que Cay, xây dựng hệ thống quản lý thư viện.
@@ -114,9 +118,9 @@ LibraryManagement/
 │   │   └── script.js
 │   │
 │   ├── dsa_core/                  #Tầng Xử lý nghiệp vụ + DSA + Thuật toán
-│   │   |
+│   │    |
 │   │   ├── models/
-│   │   │   |
+│   │   │    |
 │   │   │   ├── Book.h
 │   │   │   ├── Book.cpp
 │   │   │   ├── Member.h
@@ -129,7 +133,7 @@ LibraryManagement/
 │   │   │   └── BookCopy.cpp
 │   │   │
 │   │   ├── structures/
-│   │   │   |
+│   │   │    |
 │   │   │   ├── Node.h
 │   │   │   ├── LinkedList.h
 │   │   │   ├── HashTable.h
@@ -147,7 +151,7 @@ LibraryManagement/
 │   │   │       └── TopK.cpp
 │   │   │
 │   │   ├── repositories/
-│   │   │   |
+│   │   │    |
 │   │   │   ├── BookRepository.h
 │   │   │   ├── BookRepository.cpp
 │   │   │   ├── LoanRepository.h
@@ -180,9 +184,9 @@ LibraryManagement/
 │    ├── reservations.json 
 │    └── activities.json 
 │   
-├── tests/					#Kiểm thử
+├── tests/					                           #Kiểm thử
 │   ├── HashTableTest.cpp
-│   ├── QueueTest.cpp
+│   ├── QueueTest.cpp    #đã có
 │   ├── MinHeapTest.cpp
 │   ├── BSTTest.cpp
 │   ├── BookTest.cpp
@@ -192,6 +196,7 @@ LibraryManagement/
 │   └── Benchmark.cpp
 │
 ├── CMakeLists.txt
+├── Dockerfile
 ├── README.md
 └── .gitignore
 ```
@@ -199,8 +204,7 @@ LibraryManagement/
 
 ## 🔁 Luồng hệ thống
 
-Console (`main.cpp`) → services / repositories → models, structures và algorithms → `JsonDatabase` ↔ các tệp JSON trong `data/`
-
+Presentation → main.cpp → Service → Repository → Persistence (JsonDatabase) → JSON
 ---
 
 ## 📁 Ý nghĩa từng thư mục
@@ -312,9 +316,15 @@ Khai báo file nguồn, thư mục include, thư viện cần liên kết, cấu
 - Không chứa:
 Logic nghiệp vụ, không chứa dữ liệu JSON, không chứa giao diện.
 ---
-
+## Cấu trúc dữ liệu sử dụng
+- HashTable: Tra cứu theo mã
+- BST Truy vấn theo khoảng
+- Queue Danh sách chờ
+- MinHeap Top K
+- LinkedList Danh sách dữ liệu
+---
+## Ngôn ngữ: C++17, JSON, HTML/CSS/JS, CMake
 ## ✅ Kỳ vọng đầu ra
-
 Dự án sau khi hoàn thiện phải đáp ứng:
 
 -  chạy được luồng nghiệp vụ thư viện cơ bản 
