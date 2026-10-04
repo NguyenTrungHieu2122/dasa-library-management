@@ -199,7 +199,7 @@ function renderQueues() {
 function renderActivity() {
   const allItems = [...state.activities].reverse();
   const items = allItems.slice(0, activityLimit);
-  content.innerHTML = `<div class="section-head"><div><h2>Lịch sử hoạt động</h2><p>Đang hiển thị ${items.length} trong ${allItems.length} hoạt động gần nhất.</p></div><div class="section-actions"><label class="search-wrap"><span>K</span><input id="activityLimit" class="search-input" type="number" min="1" max="1000" step="1" aria-label="Số hoạt động gần đây cần hiển thị" value="${activityLimit}"></label></div></div><section class="panel">${activityRows(items, items.length || 1)}</section>`;
+  content.innerHTML = `<div class="section-head"><div><h2>Lịch sử hoạt động</h2><p>Đang hiển thị ${items.length} trong ${allItems.length} hoạt động gần nhất.</p></div><div class="section-actions"><label class="activity-limit-control"><span>Số hoạt động gần đây</span><input id="activityLimit" type="number" min="1" max="1000" step="1" aria-label="Số hoạt động gần đây cần hiển thị" value="${activityLimit}"></label></div></div><section class="panel">${activityRows(items, items.length || 1)}</section>`;
 }
 
 function renderPage() {

@@ -5,4 +5,5 @@
 @media(max-width:420px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-card{min-height:98px}.metric-icon{width:26px;height:26px}.date-chip{display:none}.page-heading .eyebrow{font-size:8px}.topbar .icon-button{height:34px;width:34px}}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .queue-cancel{width:25px;height:25px;border:0;border-radius:7px;background:#fff3f1;color:#a35d54;font-size:17px;line-height:1;flex:none}.queue-cancel:hover{background:#ffe6e2}
+.activity-limit-control{display:flex;align-items:center;justify-content:space-between;gap:12px;width:343px;max-width:100%;height:38px;padding:0 12px;border:1px solid #e5e9e5;border-radius:8px;background:#fff;color:var(--muted);font-size:11px}.activity-limit-control:focus-within{border-color:#8cbaa8;box-shadow:0 0 0 3px #e8f3ed}.activity-limit-control input{width:48px;height:100%;padding:0;border:0;outline:none;background:transparent;color:var(--ink);text-align:left;font-size:11px}
 @media(max-width:520px){.field-row{grid-template-columns:1fr}.queue-book{max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
