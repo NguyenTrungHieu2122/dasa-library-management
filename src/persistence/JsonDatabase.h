@@ -16,6 +16,7 @@ public:
     std::vector<reservation> reservations;
     std::vector<Activity> activities;
     bool activityHistoryNeedsSave = false;
+    bool reservationQueueNeedsSave = false;
 
     void load(const std::string& dataDirectory);
     void save(const std::string& dataDirectory) const;

@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <ctime>
+#include <utility>
 
 namespace {
 std::string readFile(const std::string& path) {
@@ -53,6 +54,7 @@ int number(const JsonValue& object, const std::string& key, int fallback = 0) {
 void JsonDatabase::load(const std::string& dataDirectory) {
     books.clear(); members.clear(); loans.clear(); reservations.clear(); activities.clear();
     activityHistoryNeedsSave = false;
+    reservationQueueNeedsSave = false;
     const std::string base = dataDirectory + "/";
 
     JsonValue bookRows = readJson(base + "books.json");
@@ -91,11 +93,25 @@ void JsonDatabase::load(const std::string& dataDirectory) {
     if (!reservationRows.isArray()) throw std::runtime_error("reservations.json phai la mot JSON array");
     for (size_t i = 0; i < reservationRows.size(); ++i) {
         reservation res; res.bookId = value(reservationRows[i], "bookId");
-        res.holdCopyId = value(reservationRows[i], "holdCopyId");
-        res.holdUntil = value(reservationRows[i], "holdUntil");
         const JsonValue& queue = reservationRows[i]["queue"];
         for (size_t j = 0; j < queue.size(); ++j)
             res.q.enqueue({value(queue[j], "memberId"), value(queue[j], "reservedAt")});
+        const JsonValue& holds = reservationRows[i]["holds"];
+        if (holds.isArray()) {
+            for (size_t j = 0; j < holds.size(); ++j) {
+                reservation::Hold hold{value(holds[j], "memberId"), value(holds[j], "copyId"), value(holds[j], "holdUntil")};
+                if (!hold.memberId.empty() && !hold.copyId.empty()) res.holds.push_back(std::move(hold));
+            }
+        } else {
+            // Migrate the previous single-holder format. Earlier data kept that
+            // holder at the front of the queue; move them out of the wait list.
+            std::string memberId = value(reservationRows[i], "holdMemberId");
+            const std::string copyId = value(reservationRows[i], "holdCopyId");
+            if (memberId.empty() && !copyId.empty() && !res.q.isEmpty()) memberId = res.q.dequeue().memberId;
+            if (!memberId.empty() && !copyId.empty())
+                res.holds.push_back({memberId, copyId, value(reservationRows[i], "holdUntil")});
+            reservationQueueNeedsSave = true;
+        }
         reservations.push_back(res);
     }
 
@@ -160,10 +176,14 @@ void JsonDatabase::save(const std::string& dataDirectory) const {
     {
         auto out = outputFile(dataDirectory + "/reservations.json"); out << "[\n";
         for (size_t i = 0; i < reservations.size(); ++i) {
-            out << "  {\"bookId\":" << jsonEscape(reservations[i].bookId)
-                << ",\"holdCopyId\":" << jsonEscape(reservations[i].holdCopyId)
-                << ",\"holdUntil\":" << jsonEscape(reservations[i].holdUntil)
-                << ",\"queue\":[";
+            out << "  {\"bookId\":" << jsonEscape(reservations[i].bookId) << ",\"holds\":[";
+            for (size_t j = 0; j < reservations[i].holds.size(); ++j) {
+                if (j) out << ',';
+                const auto& hold = reservations[i].holds[j];
+                out << "{\"memberId\":" << jsonEscape(hold.memberId) << ",\"copyId\":" << jsonEscape(hold.copyId)
+                    << ",\"holdUntil\":" << jsonEscape(hold.holdUntil) << '}';
+            }
+            out << "],\"queue\":[";
             Queue<reservationEntry> q = reservations[i].q; bool first = true;
             while (!q.isEmpty()) { auto entry = q.dequeue(); if (!first) out << ','; first = false;
                 out << "{\"memberId\":" << jsonEscape(entry.memberId) << ",\"reservedAt\":" << jsonEscape(entry.reservedAt) << '}'; }

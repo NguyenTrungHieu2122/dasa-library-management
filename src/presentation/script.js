@@ -5,6 +5,7 @@ let state = null;
 let currentPage = 'dashboard';
 let loanFilter = 'active';
 let topKWindowDays = 30;
+let activityLimit = 10;
 let toastTimer;
 
 const pageNames = {
@@ -117,9 +118,9 @@ function renderDashboard() {
 
 function stockStatus(book) {
   const reservation = state.reservations.find((item) => item.bookId === book.bookId);
-  if (reservation?.holdCopyId) {
-    const holder = reservation.queue?.[0]?.memberId || 'thành viên ưu tiên';
-    return `<span class="status-pill waiting">Giữ cho ${esc(holder)}</span>`;
+  if (reservation?.holds?.length) {
+    const holders = reservation.holds.map((hold) => hold.memberId).join(', ');
+    return `<span class="status-pill waiting">Đang giữ cho ${esc(holders)}</span>`;
   }
   if (book.availableCopies <= 0) return '<span class="status-pill out">Hết sách</span>';
   if (book.availableCopies <= 2) return '<span class="status-pill waiting">Sắp hết</span>';
@@ -133,7 +134,7 @@ function bookTable(books) {
     const width = total ? Math.round((available / total) * 100) : 0;
     const fill = available === 0 ? 'none' : available <= 2 ? 'low' : '';
     const reservation = state.reservations.find((item) => item.bookId === book.bookId);
-    const action = available > 0 || reservation?.holdCopyId
+    const action = available > 0 || reservation?.holds?.length
       ? `<button class="row-action" data-action="borrow" data-book="${esc(book.bookId)}">Mượn sách</button>`
       : `<button class="row-action" data-action="reserve" data-book="${esc(book.bookId)}">Đặt chờ</button>`;
     return `<tr><td><span class="book-id">${esc(book.bookId)}</span></td><td><div class="book-title">${esc(book.title)}</div><div class="book-author">${esc(book.author || 'Chưa cập nhật tác giả')}</div></td><td>${esc(book.category || '—')}</td><td>${stockStatus(book)}</td><td class="stock-cell"><div class="stock-text">${available} / ${total} bản</div><div class="stock-track"><div class="stock-fill ${fill}" style="width:${width}%"></div></div></td><td>${action}</td></tr>`;
@@ -186,20 +187,25 @@ function renderLoans() {
 }
 
 function renderQueues() {
-  const queues = state.reservations.filter((reservation) => reservation.queue?.length);
+  const queues = state.reservations.filter((reservation) => reservation.queue?.length || reservation.holds?.length);
   if (!queues.length) return '<div class="empty-state"><strong>Chưa có hàng chờ</strong><span>Các lượt đặt trước sẽ hiển thị tại đây.</span></div>';
-  return queues.map((reservation) => reservation.queue.map((entry, index) => `<div class="queue-row"><span class="queue-position">${index + 1}</span><div class="queue-info"><strong>${esc(personName(entry.memberId))}</strong><small>Đăng ký ${formatTime(entry.reservedAt)}</small></div><span class="queue-book">${esc(reservation.bookId)} · ${esc(bookName(reservation.bookId))}</span><button class="queue-cancel" title="Bỏ lượt chờ" aria-label="Bỏ lượt chờ ${esc(entry.memberId)}" data-action="cancel-reservation" data-book="${esc(reservation.bookId)}" data-member="${esc(entry.memberId)}">×</button></div>`).join('')).join('');
+  return queues.map((reservation) => {
+    const holder = reservation.holds.map((hold) => `<div class="queue-row queue-holder"><span class="queue-position">✓</span><div class="queue-info"><strong>${esc(personName(hold.memberId))}</strong><small>Đang được giữ bản sao ${esc(hold.copyId)} đến ${formatTime(hold.holdUntil)}</small></div><span class="queue-book">${esc(reservation.bookId)} · ${esc(bookName(reservation.bookId))}</span><button class="queue-cancel" title="Bỏ quyền nhận sách" aria-label="Bỏ quyền nhận sách của ${esc(hold.memberId)}" data-action="cancel-reservation" data-book="${esc(reservation.bookId)}" data-member="${esc(hold.memberId)}">×</button></div>`).join('');
+    const waiting = reservation.queue.map((entry, index) => `<div class="queue-row"><span class="queue-position">${index + 1}</span><div class="queue-info"><strong>${esc(personName(entry.memberId))}</strong><small>Đăng ký ${formatTime(entry.reservedAt)}</small></div><span class="queue-book">${esc(reservation.bookId)} · ${esc(bookName(reservation.bookId))}</span><button class="queue-cancel" title="Bỏ lượt chờ" aria-label="Bỏ lượt chờ ${esc(entry.memberId)}" data-action="cancel-reservation" data-book="${esc(reservation.bookId)}" data-member="${esc(entry.memberId)}">×</button></div>`).join('');
+    return holder + waiting;
+  }).join('');
 }
 
 function renderActivity() {
-  const items = [...state.activities].reverse();
-  content.innerHTML = `<div class="section-head"><div><h2>Lịch sử hoạt động</h2><p>${items.length} hoạt động được ghi nhận trong hệ thống.</p></div></div><section class="panel">${activityRows(items, items.length || 1)}</section>`;
+  const allItems = [...state.activities].reverse();
+  const items = allItems.slice(0, activityLimit);
+  content.innerHTML = `<div class="section-head"><div><h2>Lịch sử hoạt động</h2><p>Đang hiển thị ${items.length} trong ${allItems.length} hoạt động gần nhất.</p></div><div class="section-actions"><label class="search-wrap"><span>K</span><input id="activityLimit" class="search-input" type="number" min="1" max="1000" step="1" aria-label="Số hoạt động gần đây cần hiển thị" value="${activityLimit}"></label></div></div><section class="panel">${activityRows(items, items.length || 1)}</section>`;
 }
 
 function renderPage() {
   if (!state) return;
   const [title, crumb] = pageNames[currentPage]; $('#pageTitle').textContent = title; $('#breadcrumb').textContent = crumb;
-  document.title = `${title} · Dasa Library`;
+  document.title = `${title} · QueCay Library`;
   document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.page === currentPage));
   if (currentPage === 'dashboard') renderDashboard();
   else if (currentPage === 'books') renderBooks();
@@ -217,11 +223,43 @@ function memberOptions() {
   return state.members.filter((member) => member.status === 'active').map((member) => `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)}</option>`).join('');
 }
 
-function memberOptionsForQueue(reservation) {
-  const firstWaiting = reservation?.queue?.[0]?.memberId;
-  if (!firstWaiting) return memberOptions();
-  const member = state.members.find((item) => item.memberId === firstWaiting);
-  return member ? `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)} (đầu hàng chờ)</option>` : '';
+function eligibleBorrowMembers(reservation, book) {
+  const holds = reservation?.holds || [];
+  let candidates;
+  if (reservation?.queue?.length) {
+    const memberIds = holds.length ? holds.map((hold) => hold.memberId) : [reservation.queue[0].memberId];
+    candidates = memberIds.map((memberId) => state.members.find((member) => member.memberId === memberId)).filter(Boolean);
+  } else if (holds.length) {
+    const heldMembers = holds.map((hold) => state.members.find((member) => member.memberId === hold.memberId)).filter(Boolean);
+    const otherActiveMembers = state.members.filter((member) => member.status === 'active' && !holds.some((hold) => hold.memberId === member.memberId));
+    candidates = [...heldMembers, ...otherActiveMembers];
+  } else {
+    candidates = state.members.filter((member) => member.status === 'active');
+  }
+  return candidates.filter((member) => {
+    const heldCopyId = holds.find((hold) => hold.memberId === member.memberId)?.copyId;
+    return heldCopyId
+      ? book?.copies?.some((copy) => copy.copyId === heldCopyId && copy.status === 'reserved')
+      : book?.copies?.some((copy) => copy.status === 'available');
+  });
+}
+
+function memberOptionsForBorrow(reservation, book) {
+  const holds = reservation?.holds || [];
+  const eligible = eligibleBorrowMembers(reservation, book);
+  return eligible.map((member) => {
+    const held = holds.some((hold) => hold.memberId === member.memberId);
+    const note = held ? ' · đang được giữ' : '';
+    return `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)}${note}</option>`;
+  }).join('');
+}
+
+function borrowCopyOptions(book, reservation, memberId) {
+  const hold = reservation?.holds?.find((item) => item.memberId === memberId);
+  const copies = (book?.copies || []).filter((copy) => hold
+    ? copy.copyId === hold.copyId && copy.status === 'reserved'
+    : copy.status === 'available');
+  return copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
 }
 
 function availableBookOptions() {
@@ -236,36 +274,33 @@ function setDialog(title, description, fields, submitLabel = 'Xác nhận', eyeb
 
 function openBorrow(bookId = '') {
   const eligibleBooks = state.books.filter((book) => book.availableCopies > 0 ||
-    state.reservations.some((item) => item.bookId === book.bookId && item.holdCopyId));
+    state.reservations.some((item) => item.bookId === book.bookId && item.holds?.length));
   if (!eligibleBooks.length) return showToast('Hiện không có bản sách nào sẵn sàng để mượn.', true);
   const chosen = eligibleBooks.find((book) => book.bookId === bookId) || eligibleBooks[0];
   const reservation = state.reservations.find((item) => item.bookId === chosen.bookId);
-  const reservedCopyId = reservation?.holdCopyId || '';
-  const eligibleCopies = (chosen.copies || []).filter((copy) => reservedCopyId
-    ? copy.copyId === reservedCopyId && copy.status === 'reserved'
-    : copy.status === 'available');
+  const eligibleMembers = eligibleBorrowMembers(reservation, chosen);
+  const memberOptions = memberOptionsForBorrow(reservation, chosen);
+  const selectedMemberId = eligibleMembers[0]?.memberId || '';
+  const eligibleCopies = borrowCopyOptions(chosen, reservation, selectedMemberId);
   $('#actionForm').dataset.actionType = 'borrow';
   $('#actionForm').dataset.bookId = '';
   setDialog('Tạo phiếu mượn', 'Chọn sách, bản sao và thành viên. Hạn trả phải sau ngày mượn.', `
     <div class="field"><label for="borrowBookId">Sách</label><select id="borrowBookId" required>${eligibleBooks.map((book) => `<option value="${esc(book.bookId)}" ${book.bookId === chosen.bookId ? 'selected' : ''}>${esc(book.bookId)} · ${esc(book.title)} (${book.availableCopies} bản)</option>`).join('')}</select></div>
-    <div class="field"><label for="borrowCopyId">${reservedCopyId ? 'Bản sao được giữ' : 'Bản sao sẵn sàng'}</label><select id="borrowCopyId" required>${eligibleCopies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('')}</select></div>
-    <div class="field"><label for="borrowMemberId">Thành viên</label><select id="borrowMemberId" required>${memberOptionsForQueue(reservation)}</select></div>
+    <div class="field"><label for="borrowCopyId">Bản sao phù hợp với thành viên</label><select id="borrowCopyId" required>${eligibleCopies}</select></div>
+    <div class="field"><label for="borrowMemberId">Thành viên</label><select id="borrowMemberId" required>${memberOptions}</select></div>
     <div class="field-row"><div class="field"><label for="borrowDate">Ngày mượn</label><input id="borrowDate" type="date" value="${localDate()}" required></div><div class="field"><label for="dueDate">Hạn trả</label><input id="dueDate" type="date" value="${afterDays(14)}" required></div></div>`, 'Tạo phiếu');
   $('#borrowBookId').addEventListener('change', (event) => {
     const book = state.books.find((item) => item.bookId === event.target.value);
     const reservation = state.reservations.find((item) => item.bookId === book?.bookId);
-    const heldId = reservation?.holdCopyId || '';
-    const copies = (book?.copies || []).filter((copy) => heldId
-      ? copy.copyId === heldId && copy.status === 'reserved'
-      : copy.status === 'available');
-    $('#borrowCopyId').innerHTML = copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
-    $('#borrowMemberId').innerHTML = memberOptionsForQueue(reservation);
+    const members = $('#borrowMemberId');
+    members.innerHTML = memberOptionsForBorrow(reservation, book);
+    $('#borrowCopyId').innerHTML = borrowCopyOptions(book, reservation, members.value);
   });
-}
-
-function copyOptions(book, status) {
-  const copies = (book?.copies || []).filter((copy) => status === 'available' ? copy.status === 'available' : ['borrowing', 'borrowed'].includes(copy.status));
-  return copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
+  $('#borrowMemberId').addEventListener('change', (event) => {
+    const book = state.books.find((item) => item.bookId === $('#borrowBookId').value);
+    const reservation = state.reservations.find((item) => item.bookId === book?.bookId);
+    $('#borrowCopyId').innerHTML = borrowCopyOptions(book, reservation, event.target.value);
+  });
 }
 
 function openReserve(bookId) {
@@ -281,11 +316,11 @@ function openReserve(bookId) {
 function openReturn(loanId) {
   const loan = state.loans.find((item) => item.loanId === loanId);
   const book = state.books.find((item) => item.bookId === loan?.bookId);
-  if (!loan || !book) return;
+  if (!loan || !book || !loan.copyId) return showToast('Phiếu mượn chưa được gắn với bản sao sách.', true);
   $('#actionForm').dataset.actionType = 'return';
   setDialog('Nhận trả sách', `${book.title} · ${personName(loan.memberId)} · Phiếu ${loan.loanId}`, `
-    <div class="field"><label for="returnCopyId">Bản sao được trả</label><select id="returnCopyId" required>${copyOptions(book, 'borrowing')}</select><div class="field-hint">Chọn một bản sao đang được mượn của đầu sách này.</div></div>
-    <div class="field"><label for="returnDate">Ngày trả</label><input id="returnDate" type="date" value="${localDate()}" required></div>`, 'Xác nhận trả');
+    <div class="field"><label>Bản sao theo phiếu</label><input value="${esc(loan.copyId)}" disabled><div class="field-hint">Hệ thống sẽ nhận đúng bản sao gắn với phiếu mượn.</div></div>
+    <div class="field"><label for="returnDate">Ngày trả</label><input id="returnDate" type="date" min="${esc(loan.borrowDate || '')}" value="${localDate()}" required></div>`, 'Xác nhận trả');
   $('#actionForm').dataset.loanId = loan.loanId;
 }
 
@@ -303,7 +338,7 @@ async function submitAction(event) {
       result = await api('/api/reservations', { method: 'POST', body: JSON.stringify({ bookId: $('#actionForm').dataset.bookId, memberId: $('#reserveMemberId').value }) });
     } else if ($('#actionForm').dataset.actionType === 'return') {
       result = await api('/api/return', { method: 'POST', body: JSON.stringify({
-        loanId: $('#actionForm').dataset.loanId, copyId: $('#returnCopyId').value, returnDate: $('#returnDate').value,
+        loanId: $('#actionForm').dataset.loanId, returnDate: $('#returnDate').value,
       }) });
     }
     dialog.close(); $('#actionForm').dataset.loanId = ''; $('#actionForm').dataset.bookId = ''; $('#actionForm').dataset.actionType = '';
@@ -344,9 +379,14 @@ $('#dialogCancel').addEventListener('click', () => dialog.close());
 $('#dialogClose').addEventListener('click', () => dialog.close());
 $('#refreshButton').addEventListener('click', () => loadState(true));
 content.addEventListener('change', (event) => {
-  if (event.target.id !== 'topKWindowDays') return;
-  topKWindowDays = Number(event.target.value);
-  loadState();
+  if (event.target.id === 'topKWindowDays') {
+    topKWindowDays = Number(event.target.value);
+    loadState();
+  } else if (event.target.id === 'activityLimit') {
+    const requested = Number.parseInt(event.target.value, 10);
+    activityLimit = Number.isFinite(requested) ? Math.max(1, Math.min(1000, requested)) : 10;
+    renderPage();
+  }
 });
 $('#mobileMenu').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
 dialog.addEventListener('close', () => { $('#actionForm').dataset.loanId = ''; $('#actionForm').dataset.bookId = ''; $('#actionForm').dataset.actionType = ''; });

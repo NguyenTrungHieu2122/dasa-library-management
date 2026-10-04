@@ -28,7 +28,8 @@
 - Mở `http://127.0.0.1:4173` trên chính máy này. Giữ terminal của web server mở khi dùng trang; nhấn `Ctrl+C` để dừng.
 - Giao diện web dùng cùng các tệp JSON trong `data/` với ứng dụng console. Không chạy console và web cùng lúc để tránh hai chương trình ghi dữ liệu đồng thời.
 - Các thao tác mượn, trả, đặt/hủy chờ, danh sách đến hạn và Top 5 trên dashboard được xử lý qua DSA Core C++.
-- Khi trả sách có người chờ, bản sao được giữ cho người đầu hàng trong 48 giờ. Nếu hết hạn, hệ thống chuyển lượt giữ cho người tiếp theo đủ điều kiện; người đầu hàng có thể hủy lượt chờ để nhường ngay.
+- Khi có bản sao được trả trong lúc có người chờ, hệ thống chuyển quyền nhận cho từng người đầu hàng phù hợp theo số bản khả dụng, chuyển họ ra khỏi hàng chờ và giữ từng bản sao trong 48 giờ. Nếu hết hạn hoặc người được giữ hủy lượt, quyền nhận sách chuyển cho người tiếp theo đủ điều kiện. Giao diện hiển thị người đang được giữ riêng với những người còn chờ.
+- Mục lịch sử hoạt động cho phép chọn số hoạt động gần nhất cần xem, tối đa 1.000.
 - Server chỉ lắng nghe trên máy cục bộ này; người khác trên mạng chưa truy cập được.
 
 > Chạy chương trình từ thư mục gốc dự án để chương trình tìm thấy `data/`. Có thể truyền đường dẫn thư mục dữ liệu làm tham số dòng lệnh nếu cần.

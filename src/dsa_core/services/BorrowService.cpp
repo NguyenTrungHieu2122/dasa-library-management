@@ -1,4 +1,5 @@
 #include "BorrowService.h"
+#include "DateUtils.h"
 
 BorrowService::BorrowService()
 {
@@ -108,6 +109,18 @@ bool BorrowService::returnBook(Book& book,
 
     // Loan da tra roi
     if (loan.isReturned() == true)
+    {
+        return false;
+    }
+
+    try
+    {
+        if (dateKeyToDayNumber(returnDate) < dateKeyToDayNumber(loan.getBorrowDate()))
+        {
+            return false;
+        }
+    }
+    catch (const std::invalid_argument&)
     {
         return false;
     }

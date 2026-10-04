@@ -1,6 +1,6 @@
 [
-  {"bookId":"TLHH","holdCopyId":"TLHH-03","holdUntil":"2026-10-06 10:35:20","queue":[{"memberId":"M05","reservedAt":"2026-09-18 16:10:00"}]},
-  {"bookId":"DIGR","holdCopyId":"DIGR-02","holdUntil":"2026-10-06 09:26:49","queue":[{"memberId":"M02","reservedAt":"2026-09-19 09:00:00"}]},
-  {"bookId":"IVNC","holdCopyId":"IVNC-01","holdUntil":"2026-10-06 09:26:49","queue":[{"memberId":"M03","reservedAt":"2026-09-19 10:00:00"},{"memberId":"M05","reservedAt":"2026-09-19 10:30:00"}]},
-  {"bookId":"NEES","holdCopyId":"NEES-01","holdUntil":"2026-10-06 09:26:49","queue":[{"memberId":"M03","reservedAt":"2026-09-20 08:20:00"},{"memberId":"M05","reservedAt":"2026-09-20 08:45:00"}]}
+  {"bookId":"TLHH","holds":[{"memberId":"M05","copyId":"TLHH-03","holdUntil":"2026-10-06 13:34:00"}],"queue":[]},
+  {"bookId":"DIGR","holds":[{"memberId":"M02","copyId":"DIGR-02","holdUntil":"2026-10-06 09:26:49"}],"queue":[]},
+  {"bookId":"IVNC","holds":[{"memberId":"M03","copyId":"IVNC-01","holdUntil":"2026-10-06 09:26:49"},{"memberId":"M05","copyId":"IVNC-02","holdUntil":"2026-10-06 13:34:00"}],"queue":[]},
+  {"bookId":"NEES","holds":[{"memberId":"M03","copyId":"NEES-01","holdUntil":"2026-10-06 09:26:49"},{"memberId":"M05","copyId":"NEES-02","holdUntil":"2026-10-06 13:34:00"}],"queue":[]}
 ]
