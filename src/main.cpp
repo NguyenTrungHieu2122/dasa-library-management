@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include <algorithm>
 #include <chrono>
 #include <ctime>
@@ -42,7 +43,7 @@ std::string nextId(const std::vector<Loan>& loans) {
     int maxId = 0;
     for (const auto& loan : loans) {
         const std::string id = loan.getLoanId();
-        if (id.size() > 1 && id[0] == 'L') try { maxId = std::max(maxId, std::stoi(id.substr(1))); } catch (...) {}
+        if (id.size() > 1 && id[0] == 'L') try { maxId = (std::max)(maxId, std::stoi(id.substr(1))); } catch (...) {}
     }
     return "L" + std::to_string(maxId + 1);
 }
@@ -50,7 +51,7 @@ std::string nextActivityId(const std::vector<Activity>& activities) {
     int maxId = 0;
     for (const auto& activity : activities) {
         const std::string id = activity.activityId;
-        if (id.size() > 1 && id[0] == 'A') try { maxId = std::max(maxId, std::stoi(id.substr(1))); } catch (...) {}
+        if (id.size() > 1 && id[0] == 'A') try { maxId = (std::max)(maxId, std::stoi(id.substr(1))); } catch (...) {}
     }
     return "A" + std::to_string(maxId + 1);
 }

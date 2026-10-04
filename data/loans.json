@@ -1,7 +1,9 @@
 [
-  {"loanId":"L01","bookId":"TLHH","memberId":"M03","borrowDate":"2026-09-17","returnDate":null,"dueDate":"2026-09-30","status":"overdue"},
-  {"loanId":"L02","bookId":"MATH","memberId":"M01","borrowDate":"2026-09-12","returnDate":"2026-09-20","dueDate":"2026-09-26","status":"returned"},
-  {"loanId":"L03","bookId":"DIGR","memberId":"M05","borrowDate":"2026-09-15","returnDate":null,"dueDate":"2026-09-29","status":"overdue"},
-  {"loanId":"L04","bookId":"MAT2","memberId":"M02","borrowDate":"2026-09-08","returnDate":null,"dueDate":"2026-09-22","status":"overdue"},
-  {"loanId":"L05","bookId":"CAAL","memberId":"M04","borrowDate":"2026-09-18","returnDate":null,"dueDate":"2026-10-02","status":"borrowing"}
+  {"loanId":"L01","bookId":"TLHH","memberId":"M03","copyId":"TLHH-01","borrowDate":"2026-09-17","returnDate":null,"dueDate":"2026-09-30","status":"overdue"},
+  {"loanId":"L02","bookId":"MATH","memberId":"M01","copyId":"","borrowDate":"2026-09-12","returnDate":"2026-09-20","dueDate":"2026-09-26","status":"returned"},
+  {"loanId":"L03","bookId":"DIGR","memberId":"M05","copyId":"DIGR-01","borrowDate":"2026-09-15","returnDate":null,"dueDate":"2026-09-29","status":"overdue"},
+  {"loanId":"L04","bookId":"MAT2","memberId":"M02","copyId":"MAT2-01","borrowDate":"2026-09-08","returnDate":null,"dueDate":"2026-09-22","status":"overdue"},
+  {"loanId":"L05","bookId":"CAAL","memberId":"M04","copyId":"CAAL-10","borrowDate":"2026-09-18","returnDate":null,"dueDate":"2026-10-02","status":"overdue"},
+  {"loanId":"L6","bookId":"ETHI","memberId":"M01","copyId":"ETHI-01","borrowDate":"2026-10-04","returnDate":null,"dueDate":"2026-10-18","status":"borrowing"},
+  {"loanId":"L7","bookId":"ETHI","memberId":"M01","copyId":"ETHI-02","borrowDate":"2026-10-04","returnDate":null,"dueDate":"2026-10-18","status":"borrowing"}
 ]
