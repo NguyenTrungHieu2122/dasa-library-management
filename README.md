@@ -108,18 +108,10 @@ Dự án được xây dựng để đáp ứng các yêu cầu chính sau:
 ```
 LibraryManagement/
 │
-├── .vscode/
-│   ├── launch.json
-│   └── tasks.json
-│
 ├── docs/		# Up các tài liệu D1, D2,...
 │
 ├── src/
 │   ├── main.cpp
-│   │
-│   ├── web/                       # Web server chạy cục bộ bằng Node.js
-│   │   ├── server.js
-│   │   └── start.ps1
 │   │
 │   ├── presentation/              #Tầng giao diện (visualization)
 │   │   ├── index.html
@@ -128,7 +120,7 @@ LibraryManagement/
 │   │
 │   ├── dsa_core/                  #Tầng Xử lý nghiệp vụ + DSA + Thuật toán
 │   │    |
-│   │   ├── models/
+│   │   ├── models/ 
 │   │   │    |
 │   │   │   ├── Book.h
 │   │   │   ├── Book.cpp
@@ -138,18 +130,17 @@ LibraryManagement/
 │   │   │   ├── Loan.cpp
 │   │   │   ├── Reservation.h
 │   │   │   ├── Activity.h
-│   │   │   ├── BookCopy.h
-│   │   │   └── BookCopy.cpp
 │   │   │
 │   │   ├── structures/
 │   │   │    |
 │   │   │   ├── Node.h
 │   │   │   ├── LinkedList.h
+│   │   │   ├── LinkedList.cpp
 │   │   │   ├── HashTable.h
 │   │   │   ├── HashTable.cpp
-│   │   │   ├── Queue.h
 │   │   │   ├── BST.h
 │   │   │   ├── BST.cpp
+│   │   │   ├── Queue.h              
 │   │   │   ├── MinHeap.h
 │   │   │   └── MinHeap.cpp
 │   │   │
@@ -160,7 +151,7 @@ LibraryManagement/
 │   │   │       └── TopK.cpp
 │   │   │
 │   │   ├── repositories/
-│   │   │    |
+│   │   │   |
 │   │   │   ├── BookRepository.h
 │   │   │   ├── BookRepository.cpp
 │   │   │   ├── LoanRepository.h
@@ -183,29 +174,28 @@ LibraryManagement/
 │   │
 │   └── persistence/                    		  #Tầng data
 │       ├── JsonDatabase.h
-│       ├── JsonDatabase.cpp
-│       └── JsonValue.h
+│       └── JsonDatabase.cpp
 │
-├── data/
+├── data/  #đã có
 │    ├── books.json 
 │    ├── members.json 
 │    ├── loans.json 
 │    ├── reservations.json 
 │    └── activities.json 
 │   
-├── tests/					                           #Kiểm thử
+├── tests/					                            #Kiểm thử
 │   ├── HashTableTest.cpp
 │   ├── QueueTest.cpp    #đã có
 │   ├── MinHeapTest.cpp
-│   ├── BSTTest.cpp
+│   ├── BstTest.cpp
 │   ├── BookTest.cpp
-│   ├── BookRepositoryTest.cpp
 │   ├── BorrowServiceTest.cpp
-│   ├── Membertest.cpp
+│   ├── BookRepositoryTest.cpp
+│   ├── MemberTest.cpp
+│   ├── SearchServiceTest.cpp
 │   └── Benchmark.cpp
 │
 ├── CMakeLists.txt
-├── Dockerfile
 ├── README.md
 └── .gitignore
 ```
