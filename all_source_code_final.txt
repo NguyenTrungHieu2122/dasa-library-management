@@ -549,6 +549,7 @@ public:
 #endif
 #pragma once
 #include <string>
+#include <vector>
 #include "../structures/Queue.h"
 
 struct reservationEntry
@@ -561,9 +562,14 @@ struct reservation
 {
     std::string bookId;
     Queue<reservationEntry> q;
-    // A returned copy can be held for the first waiter for a short pickup window.
-    std::string holdCopyId;
-    std::string holdUntil;
+    // Holders have left the waiting queue and are tracked per physical copy.
+    struct Hold
+    {
+        std::string memberId;
+        std::string copyId;
+        std::string holdUntil;
+    };
+    std::vector<Hold> holds;
 };
 #include "ActivityRepository.h"
 
@@ -968,6 +974,7 @@ std::vector<Activity> findActivitiesByBook(const ActivityServiceState &state,
                                             const std::string &bookId);
  
 #include "BorrowService.h"
+#include "DateUtils.h"
 
 BorrowService::BorrowService()
 {
@@ -1077,6 +1084,18 @@ bool BorrowService::returnBook(Book& book,
 
     // Loan da tra roi
     if (loan.isReturned() == true)
+    {
+        return false;
+    }
+
+    try
+    {
+        if (dateKeyToDayNumber(returnDate) < dateKeyToDayNumber(loan.getBorrowDate()))
+        {
+            return false;
+        }
+    }
+    catch (const std::invalid_argument&)
     {
         return false;
     }
@@ -2020,6 +2039,7 @@ public:
 #include <sstream>
 #include <stdexcept>
 #include <ctime>
+#include <utility>
 
 namespace {
 std::string readFile(const std::string& path) {
@@ -2066,6 +2086,7 @@ int number(const JsonValue& object, const std::string& key, int fallback = 0) {
 void JsonDatabase::load(const std::string& dataDirectory) {
     books.clear(); members.clear(); loans.clear(); reservations.clear(); activities.clear();
     activityHistoryNeedsSave = false;
+    reservationQueueNeedsSave = false;
     const std::string base = dataDirectory + "/";
 
     JsonValue bookRows = readJson(base + "books.json");
@@ -2104,11 +2125,25 @@ void JsonDatabase::load(const std::string& dataDirectory) {
     if (!reservationRows.isArray()) throw std::runtime_error("reservations.json phai la mot JSON array");
     for (size_t i = 0; i < reservationRows.size(); ++i) {
         reservation res; res.bookId = value(reservationRows[i], "bookId");
-        res.holdCopyId = value(reservationRows[i], "holdCopyId");
-        res.holdUntil = value(reservationRows[i], "holdUntil");
         const JsonValue& queue = reservationRows[i]["queue"];
         for (size_t j = 0; j < queue.size(); ++j)
             res.q.enqueue({value(queue[j], "memberId"), value(queue[j], "reservedAt")});
+        const JsonValue& holds = reservationRows[i]["holds"];
+        if (holds.isArray()) {
+            for (size_t j = 0; j < holds.size(); ++j) {
+                reservation::Hold hold{value(holds[j], "memberId"), value(holds[j], "copyId"), value(holds[j], "holdUntil")};
+                if (!hold.memberId.empty() && !hold.copyId.empty()) res.holds.push_back(std::move(hold));
+            }
+        } else {
+            // Migrate the previous single-holder format. Earlier data kept that
+            // holder at the front of the queue; move them out of the wait list.
+            std::string memberId = value(reservationRows[i], "holdMemberId");
+            const std::string copyId = value(reservationRows[i], "holdCopyId");
+            if (memberId.empty() && !copyId.empty() && !res.q.isEmpty()) memberId = res.q.dequeue().memberId;
+            if (!memberId.empty() && !copyId.empty())
+                res.holds.push_back({memberId, copyId, value(reservationRows[i], "holdUntil")});
+            reservationQueueNeedsSave = true;
+        }
         reservations.push_back(res);
     }
 
@@ -2173,10 +2208,14 @@ void JsonDatabase::save(const std::string& dataDirectory) const {
     {
         auto out = outputFile(dataDirectory + "/reservations.json"); out << "[\n";
         for (size_t i = 0; i < reservations.size(); ++i) {
-            out << "  {\"bookId\":" << jsonEscape(reservations[i].bookId)
-                << ",\"holdCopyId\":" << jsonEscape(reservations[i].holdCopyId)
-                << ",\"holdUntil\":" << jsonEscape(reservations[i].holdUntil)
-                << ",\"queue\":[";
+            out << "  {\"bookId\":" << jsonEscape(reservations[i].bookId) << ",\"holds\":[";
+            for (size_t j = 0; j < reservations[i].holds.size(); ++j) {
+                if (j) out << ',';
+                const auto& hold = reservations[i].holds[j];
+                out << "{\"memberId\":" << jsonEscape(hold.memberId) << ",\"copyId\":" << jsonEscape(hold.copyId)
+                    << ",\"holdUntil\":" << jsonEscape(hold.holdUntil) << '}';
+            }
+            out << "],\"queue\":[";
             Queue<reservationEntry> q = reservations[i].q; bool first = true;
             while (!q.isEmpty()) { auto entry = q.dequeue(); if (!first) out << ','; first = false;
                 out << "{\"memberId\":" << jsonEscape(entry.memberId) << ",\"reservedAt\":" << jsonEscape(entry.reservedAt) << '}'; }
@@ -2214,6 +2253,7 @@ public:
     std::vector<reservation> reservations;
     std::vector<Activity> activities;
     bool activityHistoryNeedsSave = false;
+    bool reservationQueueNeedsSave = false;
 
     void load(const std::string& dataDirectory);
     void save(const std::string& dataDirectory) const;
@@ -2349,18 +2389,18 @@ inline std::string jsonEscape(const std::string& value) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f6f3">
-  <title>Spicy Stick Library — Quản lý thư viện</title>
+  <title>QueCay Library — Quản lý thư viện</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/script.js" defer></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#dashboard" aria-label="Spicy Stick Library trang tổng quan">
+      <a class="brand" href="#dashboard" aria-label="QueCay Library trang tổng quan">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 40 40"><path d="M8 9.5c4.5-1.3 8.5-.4 12 2.2 3.5-2.6 7.5-3.5 12-2.2v21c-4.5-1.3-8.5-.4-12 2.2-3.5-2.6-7.5-3.5-12-2.2z"/><path d="M20 12v20"/></svg>
         </span>
-        <span><strong>Spicy Stick Library</strong><small>QUẢN LÝ THƯ VIỆN</small></span>
+        <span><strong>QueCay Library</strong><small>QUẢN LÝ THƯ VIỆN</small></span>
       </a>
 
       <div class="nav-label">KHÔNG GIAN LÀM VIỆC</div>
@@ -2374,18 +2414,18 @@ inline std::string jsonEscape(const std::string& value) {
 
       <div class="sidebar-bottom">
         <div class="local-note"><span class="local-dot"></span><div><strong>Chạy cục bộ</strong><small>Dữ liệu nằm trên máy này</small></div></div>
-        <div class="profile"><span class="profile-avatar">DL</span><div><strong>Thủ thư</strong><small>Quản trị viên</small></div><span class="profile-more">···</span></div>
+        <div class="profile"><span class="profile-avatar">QL</span><div><strong>Thủ thư</strong><small>Quản trị viên</small></div><span class="profile-more">···</span></div>
       </div>
     </aside>
 
     <main class="main-panel">
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="Mở menu">☰</button>
-        <div class="page-heading"><div class="eyebrow"Spicy Stick LIBRARY / <span id="breadcrumb">TỔNG QUAN</span></div><h1 id="pageTitle">Tổng quan</h1></div>
+        <div class="page-heading"><div class="eyebrow">QUECAY LIBRARY / <span id="breadcrumb">TỔNG QUAN</span></div><h1 id="pageTitle">Tổng quan</h1></div>
         <div class="topbar-actions"><span class="connection"><span class="connection-dot"></span>Đang kết nối</span><button class="icon-button" id="refreshButton" title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">↻</button><button class="primary-button" data-action="quick-borrow"><span>＋</span> Tạo phiếu mượn</button></div>
       </header>
       <section class="content" id="content" aria-live="polite"><div class="loading-state"><span class="spinner"></span>Đang tải dữ liệu thư viện…</div></section>
-      <footer class="footer"><span>Spicy Library Management</span><span id="lastUpdated">Dữ liệu cục bộ · localhost</span></footer>
+      <footer class="footer"><span>QueCay Library</span><span id="lastUpdated">Dữ liệu cục bộ · localhost</span></footer>
     </main>
   </div>
 
@@ -2408,6 +2448,7 @@ let state = null;
 let currentPage = 'dashboard';
 let loanFilter = 'active';
 let topKWindowDays = 30;
+let activityLimit = 10;
 let toastTimer;
 
 const pageNames = {
@@ -2520,9 +2561,9 @@ function renderDashboard() {
 
 function stockStatus(book) {
   const reservation = state.reservations.find((item) => item.bookId === book.bookId);
-  if (reservation?.holdCopyId) {
-    const holder = reservation.queue?.[0]?.memberId || 'thành viên ưu tiên';
-    return `<span class="status-pill waiting">Giữ cho ${esc(holder)}</span>`;
+  if (reservation?.holds?.length) {
+    const holders = reservation.holds.map((hold) => hold.memberId).join(', ');
+    return `<span class="status-pill waiting">Đang giữ cho ${esc(holders)}</span>`;
   }
   if (book.availableCopies <= 0) return '<span class="status-pill out">Hết sách</span>';
   if (book.availableCopies <= 2) return '<span class="status-pill waiting">Sắp hết</span>';
@@ -2536,7 +2577,7 @@ function bookTable(books) {
     const width = total ? Math.round((available / total) * 100) : 0;
     const fill = available === 0 ? 'none' : available <= 2 ? 'low' : '';
     const reservation = state.reservations.find((item) => item.bookId === book.bookId);
-    const action = available > 0 || reservation?.holdCopyId
+    const action = available > 0 || reservation?.holds?.length
       ? `<button class="row-action" data-action="borrow" data-book="${esc(book.bookId)}">Mượn sách</button>`
       : `<button class="row-action" data-action="reserve" data-book="${esc(book.bookId)}">Đặt chờ</button>`;
     return `<tr><td><span class="book-id">${esc(book.bookId)}</span></td><td><div class="book-title">${esc(book.title)}</div><div class="book-author">${esc(book.author || 'Chưa cập nhật tác giả')}</div></td><td>${esc(book.category || '—')}</td><td>${stockStatus(book)}</td><td class="stock-cell"><div class="stock-text">${available} / ${total} bản</div><div class="stock-track"><div class="stock-fill ${fill}" style="width:${width}%"></div></div></td><td>${action}</td></tr>`;
@@ -2589,20 +2630,25 @@ function renderLoans() {
 }
 
 function renderQueues() {
-  const queues = state.reservations.filter((reservation) => reservation.queue?.length);
+  const queues = state.reservations.filter((reservation) => reservation.queue?.length || reservation.holds?.length);
   if (!queues.length) return '<div class="empty-state"><strong>Chưa có hàng chờ</strong><span>Các lượt đặt trước sẽ hiển thị tại đây.</span></div>';
-  return queues.map((reservation) => reservation.queue.map((entry, index) => `<div class="queue-row"><span class="queue-position">${index + 1}</span><div class="queue-info"><strong>${esc(personName(entry.memberId))}</strong><small>Đăng ký ${formatTime(entry.reservedAt)}</small></div><span class="queue-book">${esc(reservation.bookId)} · ${esc(bookName(reservation.bookId))}</span><button class="queue-cancel" title="Bỏ lượt chờ" aria-label="Bỏ lượt chờ ${esc(entry.memberId)}" data-action="cancel-reservation" data-book="${esc(reservation.bookId)}" data-member="${esc(entry.memberId)}">×</button></div>`).join('')).join('');
+  return queues.map((reservation) => {
+    const holder = reservation.holds.map((hold) => `<div class="queue-row queue-holder"><span class="queue-position">✓</span><div class="queue-info"><strong>${esc(personName(hold.memberId))}</strong><small>Đang được giữ bản sao ${esc(hold.copyId)} đến ${formatTime(hold.holdUntil)}</small></div><span class="queue-book">${esc(reservation.bookId)} · ${esc(bookName(reservation.bookId))}</span><button class="queue-cancel" title="Bỏ quyền nhận sách" aria-label="Bỏ quyền nhận sách của ${esc(hold.memberId)}" data-action="cancel-reservation" data-book="${esc(reservation.bookId)}" data-member="${esc(hold.memberId)}">×</button></div>`).join('');
+    const waiting = reservation.queue.map((entry, index) => `<div class="queue-row"><span class="queue-position">${index + 1}</span><div class="queue-info"><strong>${esc(personName(entry.memberId))}</strong><small>Đăng ký ${formatTime(entry.reservedAt)}</small></div><span class="queue-book">${esc(reservation.bookId)} · ${esc(bookName(reservation.bookId))}</span><button class="queue-cancel" title="Bỏ lượt chờ" aria-label="Bỏ lượt chờ ${esc(entry.memberId)}" data-action="cancel-reservation" data-book="${esc(reservation.bookId)}" data-member="${esc(entry.memberId)}">×</button></div>`).join('');
+    return holder + waiting;
+  }).join('');
 }
 
 function renderActivity() {
-  const items = [...state.activities].reverse();
-  content.innerHTML = `<div class="section-head"><div><h2>Lịch sử hoạt động</h2><p>${items.length} hoạt động được ghi nhận trong hệ thống.</p></div></div><section class="panel">${activityRows(items, items.length || 1)}</section>`;
+  const allItems = [...state.activities].reverse();
+  const items = allItems.slice(0, activityLimit);
+  content.innerHTML = `<div class="section-head"><div><h2>Lịch sử hoạt động</h2><p>Đang hiển thị ${items.length} trong ${allItems.length} hoạt động gần nhất.</p></div><div class="section-actions"><label class="activity-limit-control"><span>Số hoạt động gần đây</span><input id="activityLimit" type="number" min="1" max="1000" step="1" aria-label="Số hoạt động gần đây cần hiển thị" value="${activityLimit}"></label></div></div><section class="panel">${activityRows(items, items.length || 1)}</section>`;
 }
 
 function renderPage() {
   if (!state) return;
   const [title, crumb] = pageNames[currentPage]; $('#pageTitle').textContent = title; $('#breadcrumb').textContent = crumb;
-  document.title = `${title} · Dasa Library`;
+  document.title = `${title} · QueCay Library`;
   document.querySelectorAll('.nav-item').forEach((item) => item.classList.toggle('active', item.dataset.page === currentPage));
   if (currentPage === 'dashboard') renderDashboard();
   else if (currentPage === 'books') renderBooks();
@@ -2620,11 +2666,43 @@ function memberOptions() {
   return state.members.filter((member) => member.status === 'active').map((member) => `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)}</option>`).join('');
 }
 
-function memberOptionsForQueue(reservation) {
-  const firstWaiting = reservation?.queue?.[0]?.memberId;
-  if (!firstWaiting) return memberOptions();
-  const member = state.members.find((item) => item.memberId === firstWaiting);
-  return member ? `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)} (đầu hàng chờ)</option>` : '';
+function eligibleBorrowMembers(reservation, book) {
+  const holds = reservation?.holds || [];
+  let candidates;
+  if (reservation?.queue?.length) {
+    const memberIds = holds.length ? holds.map((hold) => hold.memberId) : [reservation.queue[0].memberId];
+    candidates = memberIds.map((memberId) => state.members.find((member) => member.memberId === memberId)).filter(Boolean);
+  } else if (holds.length) {
+    const heldMembers = holds.map((hold) => state.members.find((member) => member.memberId === hold.memberId)).filter(Boolean);
+    const otherActiveMembers = state.members.filter((member) => member.status === 'active' && !holds.some((hold) => hold.memberId === member.memberId));
+    candidates = [...heldMembers, ...otherActiveMembers];
+  } else {
+    candidates = state.members.filter((member) => member.status === 'active');
+  }
+  return candidates.filter((member) => {
+    const heldCopyId = holds.find((hold) => hold.memberId === member.memberId)?.copyId;
+    return heldCopyId
+      ? book?.copies?.some((copy) => copy.copyId === heldCopyId && copy.status === 'reserved')
+      : book?.copies?.some((copy) => copy.status === 'available');
+  });
+}
+
+function memberOptionsForBorrow(reservation, book) {
+  const holds = reservation?.holds || [];
+  const eligible = eligibleBorrowMembers(reservation, book);
+  return eligible.map((member) => {
+    const held = holds.some((hold) => hold.memberId === member.memberId);
+    const note = held ? ' · đang được giữ' : '';
+    return `<option value="${esc(member.memberId)}">${esc(member.memberId)} · ${esc(member.fullname)}${note}</option>`;
+  }).join('');
+}
+
+function borrowCopyOptions(book, reservation, memberId) {
+  const hold = reservation?.holds?.find((item) => item.memberId === memberId);
+  const copies = (book?.copies || []).filter((copy) => hold
+    ? copy.copyId === hold.copyId && copy.status === 'reserved'
+    : copy.status === 'available');
+  return copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
 }
 
 function availableBookOptions() {
@@ -2639,36 +2717,33 @@ function setDialog(title, description, fields, submitLabel = 'Xác nhận', eyeb
 
 function openBorrow(bookId = '') {
   const eligibleBooks = state.books.filter((book) => book.availableCopies > 0 ||
-    state.reservations.some((item) => item.bookId === book.bookId && item.holdCopyId));
+    state.reservations.some((item) => item.bookId === book.bookId && item.holds?.length));
   if (!eligibleBooks.length) return showToast('Hiện không có bản sách nào sẵn sàng để mượn.', true);
   const chosen = eligibleBooks.find((book) => book.bookId === bookId) || eligibleBooks[0];
   const reservation = state.reservations.find((item) => item.bookId === chosen.bookId);
-  const reservedCopyId = reservation?.holdCopyId || '';
-  const eligibleCopies = (chosen.copies || []).filter((copy) => reservedCopyId
-    ? copy.copyId === reservedCopyId && copy.status === 'reserved'
-    : copy.status === 'available');
+  const eligibleMembers = eligibleBorrowMembers(reservation, chosen);
+  const memberOptions = memberOptionsForBorrow(reservation, chosen);
+  const selectedMemberId = eligibleMembers[0]?.memberId || '';
+  const eligibleCopies = borrowCopyOptions(chosen, reservation, selectedMemberId);
   $('#actionForm').dataset.actionType = 'borrow';
   $('#actionForm').dataset.bookId = '';
   setDialog('Tạo phiếu mượn', 'Chọn sách, bản sao và thành viên. Hạn trả phải sau ngày mượn.', `
     <div class="field"><label for="borrowBookId">Sách</label><select id="borrowBookId" required>${eligibleBooks.map((book) => `<option value="${esc(book.bookId)}" ${book.bookId === chosen.bookId ? 'selected' : ''}>${esc(book.bookId)} · ${esc(book.title)} (${book.availableCopies} bản)</option>`).join('')}</select></div>
-    <div class="field"><label for="borrowCopyId">${reservedCopyId ? 'Bản sao được giữ' : 'Bản sao sẵn sàng'}</label><select id="borrowCopyId" required>${eligibleCopies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('')}</select></div>
-    <div class="field"><label for="borrowMemberId">Thành viên</label><select id="borrowMemberId" required>${memberOptionsForQueue(reservation)}</select></div>
+    <div class="field"><label for="borrowCopyId">Bản sao phù hợp với thành viên</label><select id="borrowCopyId" required>${eligibleCopies}</select></div>
+    <div class="field"><label for="borrowMemberId">Thành viên</label><select id="borrowMemberId" required>${memberOptions}</select></div>
     <div class="field-row"><div class="field"><label for="borrowDate">Ngày mượn</label><input id="borrowDate" type="date" value="${localDate()}" required></div><div class="field"><label for="dueDate">Hạn trả</label><input id="dueDate" type="date" value="${afterDays(14)}" required></div></div>`, 'Tạo phiếu');
   $('#borrowBookId').addEventListener('change', (event) => {
     const book = state.books.find((item) => item.bookId === event.target.value);
     const reservation = state.reservations.find((item) => item.bookId === book?.bookId);
-    const heldId = reservation?.holdCopyId || '';
-    const copies = (book?.copies || []).filter((copy) => heldId
-      ? copy.copyId === heldId && copy.status === 'reserved'
-      : copy.status === 'available');
-    $('#borrowCopyId').innerHTML = copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
-    $('#borrowMemberId').innerHTML = memberOptionsForQueue(reservation);
+    const members = $('#borrowMemberId');
+    members.innerHTML = memberOptionsForBorrow(reservation, book);
+    $('#borrowCopyId').innerHTML = borrowCopyOptions(book, reservation, members.value);
   });
-}
-
-function copyOptions(book, status) {
-  const copies = (book?.copies || []).filter((copy) => status === 'available' ? copy.status === 'available' : ['borrowing', 'borrowed'].includes(copy.status));
-  return copies.map((copy) => `<option value="${esc(copy.copyId)}">${esc(copy.copyId)}</option>`).join('');
+  $('#borrowMemberId').addEventListener('change', (event) => {
+    const book = state.books.find((item) => item.bookId === $('#borrowBookId').value);
+    const reservation = state.reservations.find((item) => item.bookId === book?.bookId);
+    $('#borrowCopyId').innerHTML = borrowCopyOptions(book, reservation, event.target.value);
+  });
 }
 
 function openReserve(bookId) {
@@ -2684,11 +2759,11 @@ function openReserve(bookId) {
 function openReturn(loanId) {
   const loan = state.loans.find((item) => item.loanId === loanId);
   const book = state.books.find((item) => item.bookId === loan?.bookId);
-  if (!loan || !book) return;
+  if (!loan || !book || !loan.copyId) return showToast('Phiếu mượn chưa được gắn với bản sao sách.', true);
   $('#actionForm').dataset.actionType = 'return';
   setDialog('Nhận trả sách', `${book.title} · ${personName(loan.memberId)} · Phiếu ${loan.loanId}`, `
-    <div class="field"><label for="returnCopyId">Bản sao được trả</label><select id="returnCopyId" required>${copyOptions(book, 'borrowing')}</select><div class="field-hint">Chọn một bản sao đang được mượn của đầu sách này.</div></div>
-    <div class="field"><label for="returnDate">Ngày trả</label><input id="returnDate" type="date" value="${localDate()}" required></div>`, 'Xác nhận trả');
+    <div class="field"><label>Bản sao theo phiếu</label><input value="${esc(loan.copyId)}" disabled><div class="field-hint">Hệ thống sẽ nhận đúng bản sao gắn với phiếu mượn.</div></div>
+    <div class="field"><label for="returnDate">Ngày trả</label><input id="returnDate" type="date" min="${esc(loan.borrowDate || '')}" value="${localDate()}" required></div>`, 'Xác nhận trả');
   $('#actionForm').dataset.loanId = loan.loanId;
 }
 
@@ -2706,7 +2781,7 @@ async function submitAction(event) {
       result = await api('/api/reservations', { method: 'POST', body: JSON.stringify({ bookId: $('#actionForm').dataset.bookId, memberId: $('#reserveMemberId').value }) });
     } else if ($('#actionForm').dataset.actionType === 'return') {
       result = await api('/api/return', { method: 'POST', body: JSON.stringify({
-        loanId: $('#actionForm').dataset.loanId, copyId: $('#returnCopyId').value, returnDate: $('#returnDate').value,
+        loanId: $('#actionForm').dataset.loanId, returnDate: $('#returnDate').value,
       }) });
     }
     dialog.close(); $('#actionForm').dataset.loanId = ''; $('#actionForm').dataset.bookId = ''; $('#actionForm').dataset.actionType = '';
@@ -2747,9 +2822,14 @@ $('#dialogCancel').addEventListener('click', () => dialog.close());
 $('#dialogClose').addEventListener('click', () => dialog.close());
 $('#refreshButton').addEventListener('click', () => loadState(true));
 content.addEventListener('change', (event) => {
-  if (event.target.id !== 'topKWindowDays') return;
-  topKWindowDays = Number(event.target.value);
-  loadState();
+  if (event.target.id === 'topKWindowDays') {
+    topKWindowDays = Number(event.target.value);
+    loadState();
+  } else if (event.target.id === 'activityLimit') {
+    const requested = Number.parseInt(event.target.value, 10);
+    activityLimit = Number.isFinite(requested) ? Math.max(1, Math.min(1000, requested)) : 10;
+    renderPage();
+  }
 });
 $('#mobileMenu').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
 dialog.addEventListener('close', () => { $('#actionForm').dataset.loanId = ''; $('#actionForm').dataset.bookId = ''; $('#actionForm').dataset.actionType = ''; });
@@ -2762,6 +2842,7 @@ loadState(true);
 @media(max-width:420px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.metric-card{min-height:98px}.metric-icon{width:26px;height:26px}.date-chip{display:none}.page-heading .eyebrow{font-size:8px}.topbar .icon-button{height:34px;width:34px}}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .queue-cancel{width:25px;height:25px;border:0;border-radius:7px;background:#fff3f1;color:#a35d54;font-size:17px;line-height:1;flex:none}.queue-cancel:hover{background:#ffe6e2}
+.activity-limit-control{display:flex;align-items:center;justify-content:space-between;gap:12px;width:343px;max-width:100%;height:38px;padding:0 12px;border:1px solid #e5e9e5;border-radius:8px;background:#fff;color:var(--muted);font-size:11px}.activity-limit-control:focus-within{border-color:#8cbaa8;box-shadow:0 0 0 3px #e8f3ed}.activity-limit-control input{width:48px;height:100%;padding:0;border:0;outline:none;background:transparent;color:var(--ink);text-align:left;font-size:11px}
 @media(max-width:520px){.field-row{grid-template-columns:1fr}.queue-book{max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 const fs = require('node:fs');
 const http = require('node:http');
@@ -3031,7 +3112,16 @@ bool reconcileMemberBorrowCounts(JsonDatabase& db) {
     }
     return changed;
 }
-
+reservation::Hold* findHoldForMember(reservation* waitingList, const std::string& memberId) {
+    if (!waitingList) return nullptr;
+    for (auto& hold : waitingList->holds) if (hold.memberId == memberId) return &hold;
+    return nullptr;
+}
+reservation::Hold* findHoldForCopy(reservation* waitingList, const std::string& copyId) {
+    if (!waitingList) return nullptr;
+    for (auto& hold : waitingList->holds) if (hold.copyId == copyId) return &hold;
+    return nullptr;
+}
 bool reconcileLoanCopies(JsonDatabase& db, ReservationRepository& resRepo) {
     bool changed = false;
     std::unordered_map<std::string, std::vector<size_t>> activeLoansByBook;
@@ -3041,11 +3131,13 @@ bool reconcileLoanCopies(JsonDatabase& db, ReservationRepository& resRepo) {
     }
     for (auto& book : db.books) {
         reservation* waitingList = resRepo.findbookId(book.getBookId());
-        const std::string heldCopyId = waitingList ? waitingList->holdCopyId : "";
+        std::vector<std::string> heldCopyIds;
+        if (waitingList) for (const auto& hold : waitingList->holds) heldCopyIds.push_back(hold.copyId);
         std::vector<std::string> assignedCopyIds;
         const auto loansForBook = activeLoansByBook.find(book.getBookId());
         auto isAssigned = [&](const std::string& copyId) {
-            return copyId == heldCopyId || std::find(assignedCopyIds.begin(), assignedCopyIds.end(), copyId) != assignedCopyIds.end();
+            return std::find(heldCopyIds.begin(), heldCopyIds.end(), copyId) != heldCopyIds.end() ||
+                   std::find(assignedCopyIds.begin(), assignedCopyIds.end(), copyId) != assignedCopyIds.end();
         };
         if (loansForBook != activeLoansByBook.end()) for (size_t loanIndex : loansForBook->second) {
             auto& loan = db.loans[loanIndex];
@@ -3076,7 +3168,8 @@ bool reconcileLoanCopies(JsonDatabase& db, ReservationRepository& resRepo) {
         int availableCopies = 0;
         for (const auto& copyValue : book.getCopies()) {
             const std::string copyId = copyValue.getCopyId();
-            const std::string desiredStatus = copyId == heldCopyId ? "reserved" : isAssigned(copyId) ? "borrowed" : "available";
+            const bool isHeld = std::find(heldCopyIds.begin(), heldCopyIds.end(), copyId) != heldCopyIds.end();
+            const std::string desiredStatus = isHeld ? "reserved" : isAssigned(copyId) ? "borrowed" : "available";
             if (copyValue.getStatus() != desiredStatus) {
                 BookCopy* copy = book.findCopyById(copyId);
                 if (copy) copy->setStatus(desiredStatus);
@@ -3091,64 +3184,59 @@ bool reconcileLoanCopies(JsonDatabase& db, ReservationRepository& resRepo) {
     }
     return changed;
 }
-
 std::string bridgeError(int status, const std::string& message) {
     return "{\"ok\":false,\"status\":" + std::to_string(status) + ",\"error\":" + jsonEscape(message) + "}";
 }
-
-void freeHeldCopy(Book* book, reservation& waitingList) {
-    if (book && !waitingList.holdCopyId.empty()) {
-        BookCopy* copy = book->findCopyById(waitingList.holdCopyId);
+void freeHeldCopy(Book* book, reservation& waitingList, const std::string& memberId) {
+    auto hold = std::find_if(waitingList.holds.begin(), waitingList.holds.end(),
+        [&](const reservation::Hold& item) { return item.memberId == memberId; });
+    if (hold == waitingList.holds.end()) return;
+    if (book) {
+        BookCopy* copy = book->findCopyById(hold->copyId);
         if (copy && copy->getStatus() == "reserved") {
             copy->setStatus("available");
             book->setAvailableCopies(book->getAvailableCopies() + 1);
         }
     }
-    waitingList.holdCopyId.clear();
-    waitingList.holdUntil.clear();
+    waitingList.holds.erase(hold);
 }
-
-void assignNextHold(Book* book, reservation& waitingList, std::vector<Member>& members) {
-    if (!book || !waitingList.holdCopyId.empty() || book->getAvailableCopies() <= 0) return;
+bool assignNextHold(Book* book, reservation& waitingList, std::vector<Member>& members) {
+    if (!book || book->getAvailableCopies() <= 0) return false;
     while (!waitingList.q.isEmpty()) {
         const std::string memberId = waitingList.q.front().memberId;
         Member* member = findMember(members, memberId);
-        if (member && member->canBorrow()) break;
+        if (member && member->canBorrow() && !findHoldForMember(&waitingList, memberId)) break;
         waitingList.q.dequeue();
     }
-    if (waitingList.q.isEmpty()) return;
+    if (waitingList.q.isEmpty()) return false;
     for (const auto& copyValue : book->getCopies()) {
         if (copyValue.getStatus() == "available") {
             const std::string copyId = copyValue.getCopyId();
             BookCopy* copy = book->findCopyById(copyId);
-            if (!copy) return;
+            if (!copy) return false;
             copy->setStatus("reserved");
             book->setAvailableCopies(book->getAvailableCopies() - 1);
-            waitingList.holdCopyId = copyId;
-            waitingList.holdUntil = plusDaysText(2);
-            return;
+            waitingList.holds.push_back({waitingList.q.dequeue().memberId, copyId, plusDaysText(2)});
+            return true;
         }
     }
+    return false;
 }
 
 bool expireHolds(JsonDatabase& db, BookRepository& books, ReservationRepository& resRepo) {
     const std::string now = nowText();
     bool changed = false;
     for (auto& waitingList : resRepo.getall()) {
-        if (waitingList.holdUntil.empty() || waitingList.holdUntil > now) continue;
         Book* book = books.findById(waitingList.bookId);
-        freeHeldCopy(book, waitingList);
-        if (!waitingList.q.isEmpty()) waitingList.q.dequeue();
-        assignNextHold(book, waitingList, db.members);
-        if (book) syncBook(db, *book);
-        changed = true;
-    }
-    for (auto& waitingList : resRepo.getall()) {
-        if (!waitingList.holdCopyId.empty() || waitingList.q.isEmpty()) continue;
-        Book* book = books.findById(waitingList.bookId);
-        const std::string priorHold = waitingList.holdCopyId;
-        assignNextHold(book, waitingList, db.members);
-        if (waitingList.holdCopyId != priorHold) {
+        bool reservationChanged = false;
+        for (size_t i = 0; i < waitingList.holds.size();) {
+            const auto hold = waitingList.holds[i];
+            if (hold.holdUntil.empty() || hold.holdUntil > now) { ++i; continue; }
+            freeHeldCopy(book, waitingList, hold.memberId);
+            reservationChanged = true;
+        }
+        while (assignNextHold(book, waitingList, db.members)) reservationChanged = true;
+        if (reservationChanged) {
             if (book) syncBook(db, *book);
             changed = true;
         }
@@ -3201,25 +3289,27 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         Book* book = books.findById(bookId); Member* member = findMember(db.members, memberId);
         if (!book || !member) return bridgeError(404, "Không tìm thấy sách hoặc thành viên.");
         reservation* waitingList = resRepo.findbookId(bookId);
-        const bool isHeldCopy = waitingList && !waitingList->holdCopyId.empty();
-        if (waitingList && !waitingList->q.isEmpty() && waitingList->q.front().memberId != memberId)
-            return bridgeError(409, "Sách đang được giữ cho thành viên " + waitingList->q.front().memberId + ".");
-        if (isHeldCopy && waitingList->holdCopyId != copyId)
-            return bridgeError(409, "Bản sao được giữ có mã " + waitingList->holdCopyId + ".");
+        reservation::Hold* selectedHold = findHoldForCopy(waitingList, copyId);
+        if (selectedHold && selectedHold->memberId != memberId)
+            return bridgeError(409, "Bản sao này đang được giữ cho thành viên " + selectedHold->memberId + ".");
+        if (!selectedHold && waitingList && !waitingList->q.isEmpty() && waitingList->q.front().memberId != memberId)
+            return bridgeError(409, "Sách đang chờ thành viên " + waitingList->q.front().memberId + ".");
         BookCopy* copy = book->findCopyById(copyId);
-        if (isHeldCopy && copy && copy->getStatus() == "reserved") {
+        if (selectedHold && copy && copy->getStatus() == "reserved") {
             copy->setStatus("available");
             book->setAvailableCopies(book->getAvailableCopies() + 1);
         }
         Loan loan; const std::string loanId = nextId(db.loans);
         BorrowService service;
         if (!service.borrowBook(*book, copyId, *member, loan, loanId, borrowDate, dueDate)) {
-            if (isHeldCopy && copy) { copy->setStatus("reserved"); book->setAvailableCopies(book->getAvailableCopies() - 1); }
+            if (selectedHold && copy) { copy->setStatus("reserved"); book->setAvailableCopies(book->getAvailableCopies() - 1); }
             return bridgeError(409, "Không thể mượn: kiểm tra bản sao, trạng thái thành viên và giới hạn mượn.");
         }
-        if (waitingList && !waitingList->q.isEmpty()) waitingList->q.dequeue();
-        if (waitingList) { waitingList->holdCopyId.clear(); waitingList->holdUntil.clear(); }
-        if (waitingList && !waitingList->q.isEmpty()) assignNextHold(book, *waitingList, db.members);
+        if (selectedHold) {
+            waitingList->holds.erase(std::remove_if(waitingList->holds.begin(), waitingList->holds.end(),
+                [&](const reservation::Hold& hold) { return hold.copyId == copyId; }), waitingList->holds.end());
+        }
+        if (waitingList) while (assignNextHold(book, *waitingList, db.members)) {}
         syncBook(db, *book); db.loans.push_back(loan); dueIndex.addLoan(loan);
         stats.recordBorrow(bookId, borrowDate);
         logBorrowActivity(activityState, bookId, memberId, loanId, nowText(), "Mượn sách " + bookId);
@@ -3229,13 +3319,16 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         return "{\"ok\":true,\"message\":\"Mượn sách thành công. Mã phiếu: " + loanId + "\",\"loanId\":" + jsonEscape(loanId) + "}";
     }
     if (action == "return") {
-        const std::string loanId = jsonString(request["loanId"]), copyId = jsonString(request["copyId"]);
+        const std::string loanId = jsonString(request["loanId"]);
         int returnDate = 0;
         if (!parseIsoDate(jsonString(request["returnDate"]), returnDate)) return bridgeError(400, "Ngày trả không hợp lệ.");
         Loan* loan = findLoan(db.loans, loanId);
         if (!loan || loan->isReturned()) return bridgeError(404, "Không tìm thấy phiếu đang mượn.");
+        if (returnDate < loan->getBorrowDate()) return bridgeError(400, "Ngày trả không thể trước ngày mượn.");
         Book* book = books.findById(loan->getBookId()); Member* member = findMember(db.members, loan->getMemberId());
         if (!book || !member) return bridgeError(409, "Không tìm thấy sách hoặc thành viên của phiếu mượn.");
+        const std::string copyId = loan->getCopyId();
+        if (copyId.empty()) return bridgeError(409, "Phiếu mượn chưa được gắn với bản sao sách.");
         BorrowService service;
         if (!service.returnBook(*book, copyId, *member, *loan, returnDate))
             return bridgeError(409, "Không thể trả: kiểm tra bản sao và thông tin phiếu.");
@@ -3243,9 +3336,14 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         reservation* waitingList = resRepo.findbookId(book->getBookId());
         std::string message = "Trả sách thành công.";
         if (waitingList && !waitingList->q.isEmpty()) {
-            assignNextHold(book, *waitingList, db.members);
-            if (!waitingList->holdCopyId.empty())
-                message += " Bản sao " + waitingList->holdCopyId + " được giữ đến " + waitingList->holdUntil + " cho thành viên " + waitingList->q.front().memberId + ".";
+            const size_t previousHolds = waitingList->holds.size();
+            while (assignNextHold(book, *waitingList, db.members)) {}
+            if (waitingList->holds.size() > previousHolds) {
+                const auto& hold = waitingList->holds.back();
+                message += " Bản sao " + hold.copyId + " được giữ đến " + hold.holdUntil + " cho thành viên " + hold.memberId + ".";
+                if (waitingList->holds.size() > previousHolds + 1)
+                    message += " Các bản sao khả dụng khác cũng đã được chuyển cho những người tiếp theo trong hàng chờ.";
+            }
         }
         syncBook(db, *book);
         logReturnActivity(activityState, book->getBookId(), member->getMemberId(), loanId, nowText(), "Trả sách " + book->getBookId());
@@ -3267,6 +3365,7 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
             resRepo.addres(newRes);
             waitingList = resRepo.findbookId(bookId);
         }
+        if (findHoldForMember(waitingList, memberId)) return bridgeError(409, "Thành viên đang được giữ sách này.");
         Queue<reservationEntry> pending = waitingList->q;
         while (!pending.isEmpty()) if (pending.dequeue().memberId == memberId) return bridgeError(409, "Thành viên đã có trong hàng chờ sách này.");
         registerRes(*waitingList, memberId, nowText());
@@ -3280,15 +3379,19 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         const std::string bookId = jsonString(request["bookId"]), memberId = jsonString(request["memberId"]);
         reservation* waitingList = resRepo.findbookId(bookId);
         if (!waitingList) return bridgeError(404, "Không tìm thấy hàng chờ của sách này.");
-        const bool wasHolder = !waitingList->q.isEmpty() && waitingList->q.front().memberId == memberId && !waitingList->holdCopyId.empty();
+        const bool wasHolder = findHoldForMember(waitingList, memberId) != nullptr;
         std::string id = memberId;
-        if (!cancelRes(*waitingList, id)) return bridgeError(404, "Không tìm thấy thành viên trong hàng chờ.");
+        if (!wasHolder && !cancelRes(*waitingList, id)) return bridgeError(404, "Không tìm thấy thành viên trong hàng chờ.");
         Book* book = books.findById(bookId);
-        if (wasHolder) { freeHeldCopy(book, *waitingList); assignNextHold(book, *waitingList, db.members); if (book) syncBook(db, *book); }
+        if (wasHolder) {
+            freeHeldCopy(book, *waitingList, memberId);
+            while (assignNextHold(book, *waitingList, db.members)) {}
+            if (book) syncBook(db, *book);
+        }
         db.activities = getAllActivityLog(activityState);
         db.reservations = resRepo.getall();
         db.save(dataDirectory);
-        return "{\"ok\":true,\"message\":\"Đã bỏ lượt chờ của thành viên " + jsonEscape(memberId) + "\"}";
+        return "{\"ok\":true,\"message\":" + jsonEscape("Đã bỏ lượt chờ của thành viên " + memberId) + "}";
     }
     return bridgeError(400, "Thao tác không được hỗ trợ.");
 }
@@ -3305,12 +3408,11 @@ int runWebBridge(const std::string& dataDirectory) {
 
     bool changedCopies = reconcileLoanCopies(db, resRepo);
     bool changedMembers = reconcileMemberBorrowCounts(db);
-    if (changedCopies || changedMembers) {
+    if (changedCopies || changedMembers || db.activityHistoryNeedsSave || db.reservationQueueNeedsSave) {
         db.activities = getAllActivityLog(activityState);
         db.reservations = resRepo.getall();
         db.save(dataDirectory);
     }
-
     BookRepository books;
     StatisticService stats;
     for (const auto& book : db.books) { books.addBook(book); stats.registerBook(book.getBookId()); }
@@ -3372,7 +3474,6 @@ int main(int argc, char* argv[]) {
                   << "Hay chay chuong trinh tu thu muc goc du an de tim thay thu muc data/.\n";
         return 1;
     }
-
     ReservationRepository resRepo;
     resRepo.setdata(db.reservations);
 
@@ -3380,7 +3481,7 @@ int main(int argc, char* argv[]) {
 
     bool changedCopies = reconcileLoanCopies(db, resRepo);
     bool changedMembers = reconcileMemberBorrowCounts(db);
-    if (changedCopies || changedMembers) {
+    if (changedCopies || changedMembers || db.activityHistoryNeedsSave || db.reservationQueueNeedsSave) {
         try {
             db.activities = getAllActivityLog(activityState);
             db.reservations = resRepo.getall();
@@ -3430,16 +3531,16 @@ int main(int argc, char* argv[]) {
             Book* book = findBook(books, bookId); Member* member = findMember(db.members, memberId);
             if (!book || !member) { std::cout << "Khong tim thay sach hoac thanh vien.\n"; continue; }
             reservation* waitingList = resRepo.findbookId(bookId);
-            if (waitingList && !waitingList->q.isEmpty() && waitingList->q.front().memberId != memberId) {
-                std::cout << "Sach dang co hang doi; thanh vien dung dau hang doi la " << waitingList->q.front().memberId << ".\n";
+            reservation::Hold* selectedHold = findHoldForCopy(waitingList, copyId);
+            if (selectedHold && selectedHold->memberId != memberId) {
+                std::cout << "Ban sao dang duoc giu cho thanh vien " << selectedHold->memberId << ".\n";
                 continue;
             }
-            const bool isHeldCopy = waitingList && !waitingList->holdCopyId.empty();
-            if (isHeldCopy && waitingList->holdCopyId != copyId) {
-                std::cout << "Ban sao duoc giu cho hang doi co ma " << waitingList->holdCopyId << ".\n";
+            if (!selectedHold && waitingList && !waitingList->q.isEmpty() && waitingList->q.front().memberId != memberId) {
+                std::cout << "Sach dang cho thanh vien dung dau hang doi " << waitingList->q.front().memberId << ".\n";
                 continue;
             }
-            BookCopy* heldCopy = isHeldCopy ? book->findCopyById(copyId) : nullptr;
+            BookCopy* heldCopy = selectedHold ? book->findCopyById(copyId) : nullptr;
             if (heldCopy && heldCopy->getStatus() == "reserved") {
                 heldCopy->setStatus("available"); book->setAvailableCopies(book->getAvailableCopies() + 1);
             }
@@ -3450,9 +3551,11 @@ int main(int argc, char* argv[]) {
                 }
                 std::cout << "Khong the muon: kiem tra ban sao, trang thai thanh vien va gioi han muon.\n"; continue;
             }
-            if (waitingList && !waitingList->q.isEmpty()) waitingList->q.dequeue();
-            if (waitingList) { waitingList->holdCopyId.clear(); waitingList->holdUntil.clear(); }
-            if (waitingList && !waitingList->q.isEmpty()) assignNextHold(book, *waitingList, db.members);
+            if (selectedHold) {
+                waitingList->holds.erase(std::remove_if(waitingList->holds.begin(), waitingList->holds.end(),
+                    [&](const reservation::Hold& hold) { return hold.copyId == copyId; }), waitingList->holds.end());
+            }
+            if (waitingList) while (assignNextHold(book, *waitingList, db.members)) {}
             syncBook(db, *book);
             db.loans.push_back(loan); dueIndex.addLoan(loan);
             stats.recordBorrow(bookId, borrowDate);
@@ -3466,16 +3569,17 @@ int main(int argc, char* argv[]) {
             Loan* loan = findLoan(db.loans, loanId);
             if (!loan || loan->isReturned()) { std::cout << "Khong tim thay phieu dang muon.\n"; continue; }
             Book* book = findBook(books, loan->getBookId()); Member* member = findMember(db.members, loan->getMemberId());
-            if (!book || !member || !borrowService.returnBook(*book, copyId, *member, *loan, returnDate)) {
+            if (!book || !member || returnDate < loan->getBorrowDate() || !borrowService.returnBook(*book, copyId, *member, *loan, returnDate)) {
                 std::cout << "Khong the tra sach: kiem tra ma ban sao va thong tin phieu.\n"; continue;
             }
             dueIndex.removeLoan(loan->getDueDate(), loanId);
             reservation* waitingList = resRepo.findbookId(book->getBookId());
             if (waitingList && !waitingList->q.isEmpty()) {
-                assignNextHold(book, *waitingList, db.members);
-                if (!waitingList->holdCopyId.empty())
-                    std::cout << "Da giu ban sao " << waitingList->holdCopyId << " den " << waitingList->holdUntil
-                              << " cho thanh vien " << waitingList->q.front().memberId << ".\n";
+                const size_t previousHolds = waitingList->holds.size();
+                while (assignNextHold(book, *waitingList, db.members)) {}
+                for (size_t i = previousHolds; i < waitingList->holds.size(); ++i)
+                    std::cout << "Da giu ban sao " << waitingList->holds[i].copyId << " den " << waitingList->holds[i].holdUntil
+                              << " cho thanh vien " << waitingList->holds[i].memberId << ".\n";
             }
             syncBook(db, *book);
             logReturnActivity(activityState, book->getBookId(), member->getMemberId(), loanId, nowText(), "Tra sach " + book->getBookId());
@@ -3494,6 +3598,7 @@ int main(int argc, char* argv[]) {
                 resRepo.addres(newRes);
                 res = resRepo.findbookId(bookId);
             }
+            if (findHoldForMember(res, memberId)) { std::cout << "Thanh vien dang duoc giu sach nay.\n"; continue; }
             bool alreadyWaiting = false; Queue<reservationEntry> q = res->q;
             while (!q.isEmpty()) if (q.dequeue().memberId == memberId) alreadyWaiting = true;
             if (alreadyWaiting) { std::cout << "Thanh vien da co trong hang doi sach nay.\n"; continue; }
@@ -3516,7 +3621,12 @@ int main(int argc, char* argv[]) {
             for (const auto& loan : dueIndex.getLoansDueInRange(startDate, endDate))
                 std::cout << loan.getLoanId() << " | " << loan.getBookId() << " | thanh vien " << loan.getMemberId() << " | han " << loan.getDueDate() << '\n';
         } else if (choice == 9) {
-            std::vector<Activity> recents = getRecentActivityLog(activityState, 10);
+            int requestedCount = 0;
+            std::cout << "So hoat dong gan day can xem (1-1000): ";
+            std::cin >> requestedCount;
+            if (!std::cin) { std::cin.clear(); std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n'); std::cout << "So luong khong hop le.\n"; continue; }
+            if (requestedCount < 1 || requestedCount > 1000) { std::cout << "Nhap mot gia tri tu 1 den 1000.\n"; continue; }
+            std::vector<Activity> recents = getRecentActivityLog(activityState, requestedCount);
             for (const auto& it : recents)
                 std::cout << it.time << " | " << it.detail << " | " << it.memberId << '\n';
         } else std::cout << "Lua chon khong hop le.\n";
