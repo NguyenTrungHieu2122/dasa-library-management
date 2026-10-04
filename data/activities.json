@@ -3,5 +3,8 @@
   {"activityId":"A02","type":"return","bookId":"MATH","memberId":"M01","loanId":"L02","reservationId":"","time":"2026-09-18 14:20:00","detail":"Trả sách MATH"},
   {"activityId":"A03","type":"reserve","bookId":"DIGR","memberId":"M05","loanId":"","reservationId":"R01","time":"2026-09-18 15:05:00","detail":"Đăng ký chờ mượn DIGR"},
   {"activityId":"A4","type":"borrow","bookId":"ETHI","memberId":"M01","loanId":"L6","reservationId":"","time":"2026-10-04 09:49:52","detail":"Mượn sách ETHI"},
-  {"activityId":"A5","type":"borrow","bookId":"ETHI","memberId":"M01","loanId":"L7","reservationId":"","time":"2026-10-04 09:50:07","detail":"Mượn sách ETHI"}
+  {"activityId":"A5","type":"borrow","bookId":"ETHI","memberId":"M01","loanId":"L7","reservationId":"","time":"2026-10-04 09:50:07","detail":"Mượn sách ETHI"},
+  {"activityId":"A06","type":"borrow","bookId":"DASA","memberId":"M01","loanId":"L8","reservationId":"","time":"2026-10-04 10:26:37","detail":"Mượn sách DASA"},
+  {"activityId":"A07","type":"borrow","bookId":"VTNG","memberId":"M01","loanId":"L9","reservationId":"","time":"2026-10-04 10:31:34","detail":"Mượn sách VTNG"},
+  {"activityId":"A08","type":"borrow","bookId":"TLHH","memberId":"M03","loanId":"L10","reservationId":"","time":"2026-10-04 10:35:20","detail":"Mượn sách TLHH"}
 ]
