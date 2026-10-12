@@ -280,6 +280,29 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         }
         return response + "]}";
     }
+    if (action == "due-range") {
+        int startDate = 0, endDate = 0;
+        if (!parseIsoDate(jsonString(request["startDate"]), startDate) ||
+            !parseIsoDate(jsonString(request["endDate"]), endDate)) {
+            return bridgeError(400, "Khoảng ngày không hợp lệ.");
+        }
+        if (startDate > endDate) {
+            return bridgeError(400, "Ngày bắt đầu không thể sau ngày kết thúc.");
+        }
+
+        const auto loans = dueIndex.getLoansDueInRange(startDate, endDate);
+        std::string response = "{\"ok\":true,\"startDate\":" + jsonEscape(dateText(startDate)) +
+            ",\"endDate\":" + jsonEscape(dateText(endDate)) + ",\"loans\":[";
+        for (size_t i = 0; i < loans.size(); ++i) {
+            if (i) response += ',';
+            const Loan& loan = loans[i];
+            response += "{\"loanId\":" + jsonEscape(loan.getLoanId()) + ",\"bookId\":" +
+                jsonEscape(loan.getBookId()) + ",\"memberId\":" + jsonEscape(loan.getMemberId()) +
+                ",\"borrowDate\":" + jsonEscape(dateText(loan.getBorrowDate())) +
+                ",\"dueDate\":" + jsonEscape(dateText(loan.getDueDate())) + ",\"returnDate\":null}";
+        }
+        return response + "]}";
+    }
     if (action == "borrow") {
         const std::string bookId = jsonString(request["bookId"]), copyId = jsonString(request["copyId"]);
         const std::string memberId = jsonString(request["memberId"]);

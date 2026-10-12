@@ -106,6 +106,7 @@ async function handleApi(request, response, url) {
   const actionByPath = {
     '/api/borrow': 'borrow',
     '/api/return': 'return',
+    '/api/loans/due-range': 'due-range',
     '/api/reservations': 'reserve',
     '/api/reservations/cancel': 'cancel-reservation',
   };

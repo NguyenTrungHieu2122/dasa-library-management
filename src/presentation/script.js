@@ -6,6 +6,10 @@ let currentPage = 'dashboard';
 let loanFilter = 'active';
 let topKWindowDays = 30;
 let activityLimit = 10;
+let dueRangeStart = '';
+let dueRangeEnd = '';
+let dueRangeLoans = null;
+let dueRangeLoading = false;
 let toastTimer;
 
 const pageNames = {
@@ -162,8 +166,8 @@ function renderMembers() {
     <div class="table-card table-scroll"><table class="data-table"><thead><tr><th>Thành viên</th><th>Mã thành viên</th><th>Điện thoại</th><th>Ngày tham gia</th><th>Đang mượn</th><th>Trạng thái</th></tr></thead><tbody>${sorted.map((member) => `<tr><td><div class="member-cell"><span class="member-avatar">${esc(initials(member.fullname))}</span><div><div class="member-name">${esc(member.fullname)}</div><div class="member-sub">${esc(member.phone || 'Chưa có số điện thoại')}</div></div></div></td><td><span class="book-id">${esc(member.memberId)}</span></td><td>${esc(member.phone || '—')}</td><td>${formatDate(member.joinDate)}</td><td><strong>${Number(member.totalBorrowBooks || 0)}</strong><span class="member-sub"> / ${Number(member.maxBorrow || 0)} quyển</span></td><td><span class="status-pill ${member.status === 'active' ? 'active' : 'out'}">${member.status === 'active' ? 'Hoạt động' : 'Tạm khóa'}</span></td></tr>`).join('')}</tbody></table></div>`;
 }
 
-function loanTable(loans) {
-  if (!loans.length) return '<tr><td colspan="6" class="empty-cell">Không có phiếu trong mục này.</td></tr>';
+function loanTable(loans, emptyMessage = 'Không có phiếu trong mục này.') {
+  if (!loans.length) return `<tr><td colspan="7" class="empty-cell">${esc(emptyMessage)}</td></tr>`;
   return loans.map((loan) => {
     const overdue = !loan.returnDate && loan.dueDate < localDate();
     const status = loan.returnDate ? '<span class="status-pill returned">Đã trả</span>' : overdue ? '<span class="status-pill overdue">Quá hạn</span>' : '<span class="status-pill available">Đang mượn</span>';
@@ -173,17 +177,67 @@ function loanTable(loans) {
 }
 
 function renderLoans() {
+  if (!dueRangeStart) dueRangeStart = localDate();
+  if (!dueRangeEnd) dueRangeEnd = afterDays(14);
   const activeLoans = state.dueLoans || state.loans.filter((loan) => !loan.returnDate);
   const filtered = (loanFilter === 'returned' ? state.loans : activeLoans).filter((loan) => {
     if (loanFilter === 'active') return !loan.returnDate;
     if (loanFilter === 'returned') return Boolean(loan.returnDate);
     return !loan.returnDate && loan.dueDate < localDate();
   });
+  const rangeSummary = dueRangeLoading
+    ? 'Đang truy vấn chỉ mục BST…'
+    : dueRangeLoans === null
+      ? 'Chọn khoảng ngày để tra cứu các phiếu đang mượn theo hạn trả.'
+      : `${dueRangeLoans.length} kết quả · ${formatDate(dueRangeStart)} – ${formatDate(dueRangeEnd)} · sắp xếp tăng dần theo hạn trả`;
+  const rangeRows = dueRangeLoading
+    ? '<tr><td colspan="7" class="empty-cell">Đang truy vấn…</td></tr>'
+    : dueRangeLoans === null
+      ? '<tr><td colspan="7" class="empty-cell">Chưa thực hiện truy vấn.</td></tr>'
+      : loanTable(dueRangeLoans, 'Không có phiếu đang mượn trong khoảng ngày này.');
+
   content.innerHTML = `<div class="section-head"><div><h2>Phiếu mượn &amp; trả</h2><p>Theo dõi hạn trả và xử lý các giao dịch sách.</p></div><div class="section-actions"><button class="primary-button" data-action="quick-borrow">＋ Tạo phiếu mượn</button></div></div>
+    <section class="panel due-range-panel">
+      <div class="panel-heading due-range-heading"><div><h3>Tra cứu hạn trả theo khoảng</h3><p>Truy vấn khoảng đóng [từ ngày, đến ngày] trên chỉ mục BST theo dueDate.</p></div></div>
+      <form id="dueRangeForm" class="due-range-form">
+        <label class="due-range-field"><span>Từ ngày</span><input id="dueRangeStart" type="date" value="${esc(dueRangeStart)}" required></label>
+        <label class="due-range-field"><span>Đến ngày</span><input id="dueRangeEnd" type="date" value="${esc(dueRangeEnd)}" required></label>
+        <button class="primary-button due-range-submit" type="submit" ${dueRangeLoading ? 'disabled' : ''}>${dueRangeLoading ? 'Đang tra cứu…' : 'Tra cứu'}</button>
+      </form>
+      <div class="due-range-summary">${esc(rangeSummary)}</div>
+      <div class="table-card table-scroll"><table class="data-table"><thead><tr><th>Mã phiếu</th><th>Sách</th><th>Thành viên</th><th>Ngày mượn</th><th>Hạn trả</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>${rangeRows}</tbody></table></div>
+    </section>
     <div class="table-card"><div class="table-toolbar"><span>${filtered.length} phiếu</span><div class="tab-switch"><button class="tab-button ${loanFilter === 'active' ? 'active' : ''}" data-filter="active">Đang mượn</button><button class="tab-button ${loanFilter === 'overdue' ? 'active' : ''}" data-filter="overdue">Quá hạn</button><button class="tab-button ${loanFilter === 'returned' ? 'active' : ''}" data-filter="returned">Đã trả</button></div></div>
       <div class="table-scroll"><table class="data-table"><thead><tr><th>Mã phiếu</th><th>Sách</th><th>Thành viên</th><th>Ngày mượn</th><th>Hạn trả</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>${loanTable(filtered)}</tbody></table></div></div>
     <div class="section-head queue-heading"><div><h2>Hàng chờ đặt trước</h2><p>Thành viên được phục vụ theo thứ tự đăng ký.</p></div></div>
     <div class="panel queue-list">${renderQueues()}</div>`;
+  $('#dueRangeForm').addEventListener('submit', queryDueRange);
+}
+
+async function queryDueRange(event) {
+  event.preventDefault();
+  const startDate = $('#dueRangeStart').value;
+  const endDate = $('#dueRangeEnd').value;
+  if (!startDate || !endDate) return showToast('Vui lòng chọn đủ ngày bắt đầu và ngày kết thúc.', true);
+  if (startDate > endDate) return showToast('Ngày bắt đầu không thể sau ngày kết thúc.', true);
+
+  dueRangeStart = startDate;
+  dueRangeEnd = endDate;
+  dueRangeLoading = true;
+  renderLoans();
+  try {
+    const result = await api('/api/loans/due-range', {
+      method: 'POST',
+      body: JSON.stringify({ startDate, endDate }),
+    });
+    dueRangeLoans = result.loans || [];
+    showToast(`Tìm thấy ${dueRangeLoans.length} phiếu trong khoảng đã chọn.`);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    dueRangeLoading = false;
+    if (currentPage === 'loans') renderLoans();
+  }
 }
 
 function renderQueues() {
@@ -342,6 +396,7 @@ async function submitAction(event) {
       }) });
     }
     dialog.close(); $('#actionForm').dataset.loanId = ''; $('#actionForm').dataset.bookId = ''; $('#actionForm').dataset.actionType = '';
+    dueRangeLoans = null;
     await loadState(); showToast(result?.message || 'Đã cập nhật dữ liệu.');
   } catch (error) {
     showToast(error.message, true);
