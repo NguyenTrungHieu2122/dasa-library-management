@@ -54,7 +54,7 @@
             }
         },
         {
-            "label": "Run Active C++ Test (MinGW)",
+            "label": "Run Benchmark (MinGW)",
             "type": "shell",
             "command": "powershell",
             "args": [
@@ -64,7 +64,7 @@
                 "-File",
                 "${workspaceFolder}/.vscode/run-active-test.ps1",
                 "-TestFile",
-                "${file}"
+                "${workspaceFolder}/tests/Benchmark.cpp"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

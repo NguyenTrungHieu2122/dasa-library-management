@@ -7,14 +7,18 @@ $ErrorActionPreference = 'Stop'
 $workspaceRoot = Split-Path -Parent $PSScriptRoot
 $testPath = [System.IO.Path]::GetFullPath($TestFile)
 $testsRoot = [System.IO.Path]::GetFullPath((Join-Path $workspaceRoot 'tests')).TrimEnd('\') + '\'
+$benchmarkPath = [System.IO.Path]::GetFullPath((Join-Path $testsRoot 'Benchmark.cpp'))
 
 if (-not $testPath.StartsWith($testsRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    Write-Error 'Open a .cpp file inside the tests folder before running this task.'
-    exit 1
+    Write-Warning 'The active file is outside tests; running tests/Benchmark.cpp instead.'
+    $testPath = $benchmarkPath
+} elseif ([System.IO.Path]::GetExtension($testPath) -ne '.cpp') {
+    Write-Warning 'The active file is not a .cpp test; running tests/Benchmark.cpp instead.'
+    $testPath = $benchmarkPath
 }
 
-if ([System.IO.Path]::GetExtension($testPath) -ne '.cpp') {
-    Write-Error 'The active test file must have a .cpp extension.'
+if (-not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
+    Write-Error "Test source was not found: $testPath"
     exit 1
 }
 
