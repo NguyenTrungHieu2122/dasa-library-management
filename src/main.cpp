@@ -188,25 +188,25 @@ bool reconcileLoanCopies(JsonDatabase& db, ReservationRepository& resRepo) {
 std::string bridgeError(int status, const std::string& message) {
     return "{\"ok\":false,\"status\":" + std::to_string(status) + ",\"error\":" + jsonEscape(message) + "}";
 }
-void freeHeldCopy(Book* book, reservation& waitingList, const std::string& memberId) {
+void freeHeldCopy(Book* book, reservation& waitingList, const std::string& memberId) {//thu hồi bản sao quá hạn
     auto hold = std::find_if(waitingList.holds.begin(), waitingList.holds.end(),
         [&](const reservation::Hold& item) { return item.memberId == memberId; });
     if (hold == waitingList.holds.end()) return;
     if (book) {
         BookCopy* copy = book->findCopyById(hold->copyId);
         if (copy && copy->getStatus() == "reserved") {
-            copy->setStatus("available");
-            book->setAvailableCopies(book->getAvailableCopies() + 1);
+            copy->setStatus("available");//đặt lại trạng thái của sách
+            book->setAvailableCopies(book->getAvailableCopies() + 1);//tăng số bản sao lên
         }
     }
     waitingList.holds.erase(hold);
 }
-bool assignNextHold(Book* book, reservation& waitingList, std::vector<Member>& members) {
+bool assignNextHold(Book* book, reservation& waitingList, std::vector<Member>& members) { //rút người đầu hàng và xóa bảng sao trong 2 ngày
     if (!book || book->getAvailableCopies() <= 0) return false;
     while (!waitingList.q.isEmpty()) {
         const std::string memberId = waitingList.q.front().memberId;
         Member* member = findMember(members, memberId);
-        if (member && member->canBorrow() && !findHoldForMember(&waitingList, memberId)) break;
+        if (member && member->canBorrow() && !findHoldForMember(&waitingList, memberId)) break; //kiểm tra tư cách thành viên
         waitingList.q.dequeue();
     }
     if (waitingList.q.isEmpty()) return false;
@@ -215,30 +215,30 @@ bool assignNextHold(Book* book, reservation& waitingList, std::vector<Member>& m
             const std::string copyId = copyValue.getCopyId();
             BookCopy* copy = book->findCopyById(copyId);
             if (!copy) return false;
-            copy->setStatus("reserved");
-            book->setAvailableCopies(book->getAvailableCopies() - 1);
-            waitingList.holds.push_back({waitingList.q.dequeue().memberId, copyId, plusDaysText(2)});
+            copy->setStatus("reserved");//khóa trạng thái bảng sao
+            book->setAvailableCopies(book->getAvailableCopies() - 1);//trừ bớt số sách có sẵn
+            waitingList.holds.push_back({waitingList.q.dequeue().memberId, copyId, plusDaysText(2)});//tính mốc thời gian giữa 2 ngày
             return true;
         }
     }
     return false;
 }
 
-bool expireHolds(JsonDatabase& db, BookRepository& books, ReservationRepository& resRepo) {
-    const std::string now = nowText();
+bool expireHolds(JsonDatabase& db, BookRepository& books, ReservationRepository& resRepo) {//kiểm tra và xử lí lượt giữ chỗ quá hạn
+    const std::string now = nowText(); //lấy thời gian hiện tại của hệ thống làm mốc
     bool changed = false;
-    for (auto& waitingList : resRepo.getall()) {
+    for (auto& waitingList : resRepo.getall()) {//duyệt các hàng chờ của tất cả các sách có trong thư viện
         Book* book = books.findById(waitingList.bookId);
         bool reservationChanged = false;
-        for (size_t i = 0; i < waitingList.holds.size();) {
-            const auto hold = waitingList.holds[i];
-            if (hold.holdUntil.empty() || hold.holdUntil > now) { ++i; continue; }
-            freeHeldCopy(book, waitingList, hold.memberId);
+        for (size_t i = 0; i < waitingList.holds.size();) {//duyệt qua hold
+            const auto hold = waitingList.holds[i];//lấy thông tin của người đang được giữ sach tại vitri i
+            if (hold.holdUntil.empty() || hold.holdUntil > now) { ++i; continue; }//chưa hết 48 giờ tăng biến đếm và bỏ qua người ngày
+            freeHeldCopy(book, waitingList, hold.memberId);//quá hạn, gọi hàm xử lí
             reservationChanged = true;
         }
-        while (assignNextHold(book, waitingList, db.members)) reservationChanged = true;
-        if (reservationChanged) {
-            if (book) syncBook(db, *book);
+        while (assignNextHold(book, waitingList, db.members)) reservationChanged = true;//rút người đứng đầu hàng đợi, giữ chỗ cho họ
+        if (reservationChanged) {//nếu có người được đặt chỗ từ queue
+            if (book) syncBook(db, *book);//đồng bộ số lượn sách có sẵn vào data
             changed = true;
         }
     }
@@ -285,68 +285,68 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         const std::string memberId = jsonString(request["memberId"]);
         int borrowDate = 0, dueDate = 0;
         if (!parseIsoDate(jsonString(request["borrowDate"]), borrowDate) ||
-            !parseIsoDate(jsonString(request["dueDate"]), dueDate) || dueDate <= borrowDate)
+            !parseIsoDate(jsonString(request["dueDate"]), dueDate) || dueDate <= borrowDate)// đọc và ép ngyà mượn từ chuỗi sang số nguyên
             return bridgeError(400, "Ngày mượn và hạn trả không hợp lệ.");
-        Book* book = books.findById(bookId); Member* member = findMember(db.members, memberId);
+        Book* book = books.findById(bookId); Member* member = findMember(db.members, memberId); // tìm sách và thành viên tương ứng
         if (!book || !member) return bridgeError(404, "Không tìm thấy sách hoặc thành viên.");
-        reservation* waitingList = resRepo.findbookId(bookId);
+        reservation* waitingList = resRepo.findbookId(bookId); //lấy danh sách hàng chờ của cuốn sách có ID tương ứng
         reservation::Hold* selectedHold = findHoldForCopy(waitingList, copyId);
-        if (selectedHold && selectedHold->memberId != memberId)
+        if (selectedHold && selectedHold->memberId != memberId) // nếu bản sao đang được giữ chỗ và người đến mượn k phải là người đc giữ
             return bridgeError(409, "Bản sao này đang được giữ cho thành viên " + selectedHold->memberId + ".");
         if (!selectedHold && waitingList && !waitingList->q.isEmpty() && waitingList->q.front().memberId != memberId)
             return bridgeError(409, "Sách đang chờ thành viên " + waitingList->q.front().memberId + ".");
-        BookCopy* copy = book->findCopyById(copyId);
-        if (selectedHold && copy && copy->getStatus() == "reserved") {
-            copy->setStatus("available");
-            book->setAvailableCopies(book->getAvailableCopies() + 1);
+        BookCopy* copy = book->findCopyById(copyId); // lấy ra bản sao thực tế
+        if (selectedHold && copy && copy->getStatus() == "reserved") { //nếu người mượn hợp lệ và đang dùng quyền giữ chỗ
+            copy->setStatus("available"); // set trạng thái thành available
+            book->setAvailableCopies(book->getAvailableCopies() + 1); //tăng số sách đang sẵn sàng lên
         }
-        Loan loan; const std::string loanId = nextId(db.loans);
+        Loan loan; const std::string loanId = nextId(db.loans); // khỏi tạo phiếu mượn
         BorrowService service;
-        if (!service.borrowBook(*book, copyId, *member, loan, loanId, borrowDate, dueDate)) {
-            if (selectedHold && copy) { copy->setStatus("reserved"); book->setAvailableCopies(book->getAvailableCopies() - 1); }
+        if (!service.borrowBook(*book, copyId, *member, loan, loanId, borrowDate, dueDate)) { // gọi hàm brrow xử lí mực mượn đổi trạngt thái thành borrow lưu ngày tháng
+            if (selectedHold && copy) { copy->setStatus("reserved"); book->setAvailableCopies(book->getAvailableCopies() - 1); }//nếu borrow thất bại hoàn tác và báo lỗi
             return bridgeError(409, "Không thể mượn: kiểm tra bản sao, trạng thái thành viên và giới hạn mượn.");
         }
         if (selectedHold) {
             waitingList->holds.erase(std::remove_if(waitingList->holds.begin(), waitingList->holds.end(),
                 [&](const reservation::Hold& hold) { return hold.copyId == copyId; }), waitingList->holds.end());
         }
-        if (waitingList) while (assignNextHold(book, *waitingList, db.members)) {}
+        if (waitingList) while (assignNextHold(book, *waitingList, db.members)) {} //quét hàng chờ phòng trường hợp mượn sách tạo ra thay đổi, thử đẩy người tiếp lên nếu còn bản sao
         syncBook(db, *book); db.loans.push_back(loan); dueIndex.addLoan(loan);
         stats.recordBorrow(bookId, borrowDate);
-        logBorrowActivity(activityState, bookId, memberId, loanId, nowText(), "Mượn sách " + bookId);
+        logBorrowActivity(activityState, bookId, memberId, loanId, nowText(), "Mượn sách " + bookId); // ghi nhận hành động mượn vào ls
         db.activities = getAllActivityLog(activityState);
         db.reservations = resRepo.getall();
         db.save(dataDirectory);
-        return "{\"ok\":true,\"message\":\"Mượn sách thành công. Mã phiếu: " + loanId + "\",\"loanId\":" + jsonEscape(loanId) + "}";
+        return "{\"ok\":true,\"message\":\"Mượn sách thành công. Mã phiếu: " + loanId + "\",\"loanId\":" + jsonEscape(loanId) + "}"; 
     }
     if (action == "return") {
-        const std::string loanId = jsonString(request["loanId"]);
+        const std::string loanId = jsonString(request["loanId"]); // trích xuất loanID
         int returnDate = 0;
-        if (!parseIsoDate(jsonString(request["returnDate"]), returnDate)) return bridgeError(400, "Ngày trả không hợp lệ.");
-        Loan* loan = findLoan(db.loans, loanId);
-        if (!loan || loan->isReturned()) return bridgeError(404, "Không tìm thấy phiếu đang mượn.");
+        if (!parseIsoDate(jsonString(request["returnDate"]), returnDate)) return bridgeError(400, "Ngày trả không hợp lệ."); //trích xuất ngày
+        Loan* loan = findLoan(db.loans, loanId); //tìm phiếu mượn
+        if (!loan || loan->isReturned()) return bridgeError(404, "Không tìm thấy phiếu đang mượn.");//nếu k tìm thấy hoặc đã trả thì chặn lại
         if (returnDate < loan->getBorrowDate()) return bridgeError(400, "Ngày trả không thể trước ngày mượn.");
-        Book* book = books.findById(loan->getBookId()); Member* member = findMember(db.members, loan->getMemberId());
+        Book* book = books.findById(loan->getBookId()); Member* member = findMember(db.members, loan->getMemberId()); //truy xuất ra sách và thành viên tương ứng
         if (!book || !member) return bridgeError(409, "Không tìm thấy sách hoặc thành viên của phiếu mượn.");
-        const std::string copyId = loan->getCopyId();
+        const std::string copyId = loan->getCopyId(); //lấy mã sách bản sao của đầu sách
         if (copyId.empty()) return bridgeError(409, "Phiếu mượn chưa được gắn với bản sao sách.");
         BorrowService service;
-        if (!service.returnBook(*book, copyId, *member, *loan, returnDate))
+        if (!service.returnBook(*book, copyId, *member, *loan, returnDate)) // goi hàm để đổi trạng thái sách từ borrowed thành available, giảm số sách đang mượn của thành viên và lưu ngày trả
             return bridgeError(409, "Không thể trả: kiểm tra bản sao và thông tin phiếu.");
-        dueIndex.removeLoan(loan->getDueDate(), loanId);
-        reservation* waitingList = resRepo.findbookId(book->getBookId());
+        dueIndex.removeLoan(loan->getDueDate(), loanId); // xóa phiếu mượn khỏi cây BST
+        reservation* waitingList = resRepo.findbookId(book->getBookId()); // tìm xem ID đó có hàng đợi không
         std::string message = "Trả sách thành công.";
-        if (waitingList && !waitingList->q.isEmpty()) {
-            const size_t previousHolds = waitingList->holds.size();
-            while (assignNextHold(book, *waitingList, db.members)) {}
-            if (waitingList->holds.size() > previousHolds) {
+        if (waitingList && !waitingList->q.isEmpty()) { // nếu hàng đợi đang có người xếp hàng đợi
+            const size_t previousHolds = waitingList->holds.size(); // lưu lại số người đang được giữ chỗ
+            while (assignNextHold(book, *waitingList, db.members)) {} // dequeue người đứng đầu hàng đợi, chuyển trạng thái bản sao thành reserve, thêm người đó vào holds. 
+            if (waitingList->holds.size() > previousHolds) { //so sánh độ dài hold với prehold nếu hold tăng lên nghĩa là có người được lấy từ queue ra
                 const auto& hold = waitingList->holds.back();
                 message += " Bản sao " + hold.copyId + " được giữ đến " + hold.holdUntil + " cho thành viên " + hold.memberId + ".";
                 if (waitingList->holds.size() > previousHolds + 1)
                     message += " Các bản sao khả dụng khác cũng đã được chuyển cho những người tiếp theo trong hàng chờ.";
             }
         }
-        syncBook(db, *book);
+        syncBook(db, *book);// đồng bộ thông tin sách vào data tổng đồn thời ghi hành động vào lịch sử
         logReturnActivity(activityState, book->getBookId(), member->getMemberId(), loanId, nowText(), "Trả sách " + book->getBookId());
         db.activities = getAllActivityLog(activityState);
         db.reservations = resRepo.getall();
@@ -354,27 +354,28 @@ std::string runBridgeRequest(const JsonValue& request, const std::string& dataDi
         return "{\"ok\":true,\"message\":" + jsonEscape(message) + "}";
     }
     if (action == "reserve") {
-        const std::string bookId = jsonString(request["bookId"]), memberId = jsonString(request["memberId"]);
+        const std::string bookId = jsonString(request["bookId"]), memberId = jsonString(request["memberId"]); // trích xuất mã sách và mã mem
         Book* book = books.findById(bookId); Member* member = findMember(db.members, memberId);
         if (!book || !member) return bridgeError(404, "Không tìm thấy sách hoặc thành viên.");
         if (member->getStatus() != "active") return bridgeError(409, "Thành viên hiện không hoạt động.");
         if (book->getAvailableCopies() > 0) return bridgeError(409, "Sách vẫn còn bản sẵn sàng, chưa cần vào hàng chờ.");
-        reservation* waitingList = resRepo.findbookId(bookId);
-        if (!waitingList) {
-            reservation newRes;
-            newRes.bookId = bookId;
-            resRepo.addres(newRes);
-            waitingList = resRepo.findbookId(bookId);
+        reservation* waitingList = resRepo.findbookId(bookId); // tìm kiếm hàng chờ của cuốn sách có ID tương ứng
+        if (!waitingList) { // ktra waitinglist của sách có tồn tại hay không, nếu không
+            reservation newRes; // tạo 1 ds đặt sách mới
+            newRes.bookId = bookId; // gán mã sách vào danh sách
+            resRepo.addres(newRes); // lưu newRes vào đata
+            waitingList = resRepo.findbookId(bookId); // trỏ con trỏ waitinglist vào ds vừa tạo
+            // nếu bỏ cái này khi người dùng muốn đặt trước 1 cuôn sách chưa có hàng đợi hệ thống luôn trả về null và crash chương trình
         }
         if (findHoldForMember(waitingList, memberId)) return bridgeError(409, "Thành viên đang được giữ sách này.");
-        Queue<reservationEntry> pending = waitingList->q;
-        while (!pending.isEmpty()) if (pending.dequeue().memberId == memberId) return bridgeError(409, "Thành viên đã có trong hàng chờ sách này.");
-        registerRes(*waitingList, memberId, nowText());
-        logReserveActivity(activityState, bookId, memberId, "", nowText(), "Đăng ký chờ mượn " + bookId);
+        Queue<reservationEntry> pending = waitingList->q; // tạo bản sao của hàng đợi waitingllist gán vào pending để khi xử lí q gốc không bị thay đổi
+        while (!pending.isEmpty()) if (pending.dequeue().memberId == memberId) return bridgeError(409, "Thành viên đã có trong hàng chờ sách này."); // chống spam đặ chỗ 
+        registerRes(*waitingList, memberId, nowText()); // đẩy thành viên vào q thật của hệ thống sau khi kiểm tra
+        logReserveActivity(activityState, bookId, memberId, "", nowText(), "Đăng ký chờ mượn " + bookId); // ghi nhậ vào lịch sử
         db.activities = getAllActivityLog(activityState);
         db.reservations = resRepo.getall();
-        db.save(dataDirectory);
-        return "{\"ok\":true,\"message\":\"Đã thêm vào hàng chờ, vị trí " + std::to_string(getwaitingcount(*waitingList)) + ".\"}";
+        db.save(dataDirectory); // ghi đè cấu trúc dữ liệu trên ram lên file
+        return "{\"ok\":true,\"message\":\"Đã thêm vào hàng chờ, vị trí " + std::to_string(getwaitingcount(*waitingList)) + ".\"}"; //thông báo vị trí hàng đợi
     }
     if (action == "cancel-reservation") {
         const std::string bookId = jsonString(request["bookId"]), memberId = jsonString(request["memberId"]);
@@ -641,3 +642,5 @@ int main(int argc, char* argv[]) {
     std::cout << "Da luu du lieu. Tam biet!\n";
     return 0;
 }
+
+

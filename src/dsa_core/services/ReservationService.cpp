@@ -1,6 +1,6 @@
 #include "ReservationService.h"
 using namespace std;
-void registerRes(reservation& res, const std::string memberId, const std::string& reservedAt){
+void registerRes(reservation& res, const std::string memberId, const std::string& reservedAt){ // đăng kí hàng đợi
     reservationEntry member;
     member.memberId=memberId;
     member.reservedAt=reservedAt;
@@ -10,13 +10,13 @@ reservationEntry getMember(reservation& res){
     reservationEntry member = res.q.dequeue();
     return member;
 }
-bool haswaitingmem(reservation res){
+bool haswaitingmem(reservation res){ // kiểm tra xem có người trong hàng đợi không có thì trả về true
     return !res.q.isEmpty();
 }
-int getwaitingcount(reservation res){
+int getwaitingcount(reservation res){ // lấy số người trong hàng đợi 
     return res.q.size();
 }
-bool cancelRes(reservation& res, std::string& memberId){
+bool cancelRes(reservation& res, std::string& memberId){ //xóa người trong hàng đợi muốn hủy hàng đợi
     Queue<reservationEntry> tempQueue;
     bool remove=false;
     while(!res.q.isEmpty()){
