@@ -2,7 +2,7 @@
 #pragma once
 #include<queue>
 #include<stdexcept>
-template <typename T>
+template <typename T> // Khai báo 1 template với kiểu dữ liệu T bất kì
 class Queue {
 private:
 	std::queue<T> q;
@@ -21,7 +21,7 @@ public:
 		q.pop();
 		return mem;
 	}
-	T& front()//lấy phần tử đầu
+	T& front()//lấy phần tử đầu, dấu & đảm bảo hàm không ảnh hưởng tới dữ liệu bên trong 
 	{
 		if(q.empty()){
 			throw std::runtime_error("Queue is empty");
